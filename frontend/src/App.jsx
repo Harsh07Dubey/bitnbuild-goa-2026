@@ -1,13 +1,74 @@
-import './App.css'
+import React from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 
-function App() {
+// Public & Auth Pages
+import Landing from './pages/Landing';
+import Login from './pages/Login';
+import OTPVerification from './pages/OTPVerification';
 
+// Merchant Flow
+import MerchantLayout from './layouts/MerchantLayout';
+import MerchantOnboarding from './pages/merchant/MerchantOnboarding';
+import MerchantDashboard from './pages/merchant/MerchantDashboard';
+import CreateContract from './pages/merchant/CreateContract';
+import ContractDetails from './pages/merchant/ContractDetails';
+import MerchantQR from './pages/merchant/MerchantQR';
+import InventoryCheckpoint from './pages/merchant/InventoryCheckpoint';
 
+// Investor Flow
+import InvestorLayout from './layouts/InvestorLayout';
+import InvestorOnboarding from './pages/investor/InvestorOnboarding';
+import Marketplace from './pages/investor/Marketplace';
+import InvestorContractDetails from './pages/investor/InvestorContractDetails';
+import FundContract from './pages/investor/FundContract';
+import InvestorDashboard from './pages/investor/InvestorDashboard';
+
+// Payment Flow
+import PaymentSuccess from './pages/payment/PaymentSuccess';
+import PaymentFailed from './pages/payment/PaymentFailed';
+
+// Route Guards
+import ProtectedRoute from './components/ProtectedRoute';
+
+export default function App() {
   return (
-    <>
-      <div>App</div>
-    </>
-  )
-}
+    <BrowserRouter>
+      <Routes>
+        {/* Public Routes */}
+        <Route path="/" element={<Landing />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/verify-otp" element={<OTPVerification />} />
 
-export default App
+        {/* Merchant Routes */}
+        <Route element={<ProtectedRoute />}>
+          <Route path="/merchant" element={<MerchantLayout />}>
+            <Route path="onboarding" element={<MerchantOnboarding />} />
+            <Route path="dashboard" element={<MerchantDashboard />} />
+            <Route path="contract/create" element={<CreateContract />} />
+            <Route path="contract/:id" element={<ContractDetails />} />
+            <Route path="qr" element={<MerchantQR />} />
+            <Route path="inventory" element={<InventoryCheckpoint />} />
+          </Route>
+        </Route>
+
+        {/* Investor Routes */}
+        <Route element={<ProtectedRoute />}>
+          <Route path="/investor" element={<InvestorLayout />}>
+            <Route path="onboarding" element={<InvestorOnboarding />} />
+            <Route path="marketplace" element={<Marketplace />} />
+            <Route path="contract/:id" element={<InvestorContractDetails />} />
+            <Route path="fund/:id" element={<FundContract />} />
+            <Route path="dashboard" element={<InvestorDashboard />} />
+          </Route>
+        </Route>
+
+        {/* Customer Checkout / Payment Terminal States */}
+        <Route path="/payment/success" element={<PaymentSuccess />} />
+        <Route path="/payment/failed" element={<PaymentFailed />} />
+
+        {/* Catch-all fallback */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </BrowserRouter>
+  );
+}

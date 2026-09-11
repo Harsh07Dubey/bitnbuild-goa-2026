@@ -1,0 +1,102 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  user_id         String   @id @default(uuid())
+  role            String
+  name            String
+  phone           String?
+  email           String   @unique
+  verified_flag   Boolean  @default(false)
+  trust_score     Decimal? @db.Decimal(5, 2)
+  ai_score_source String?
+
+  contracts            Contract[]
+  fundings             Funding[]
+  inventoryCheckpoints InventoryCheckpoint[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Contract {
+  contract_id        String   @id @default(uuid())
+  merchant_id        String
+  principal          Decimal  @db.Decimal(12, 2)
+  share_pct          Decimal  @db.Decimal(5, 2)
+  cap_amount         Decimal  @db.Decimal(12, 2)
+  duration_days      Int
+  status             String   @default("Draft")
+  apr_equivalent     Decimal? @db.Decimal(8, 2)
+  platform_fee_pct   Decimal? @db.Decimal(5, 2)
+  weekly_minimum     Decimal? @db.Decimal(12, 2)
+  total_repaid       Decimal  @default(0) @db.Decimal(12, 2)
+  ai_recommended_cap Decimal? @db.Decimal(12, 2)
+  ai_risk_rationale  String?
+
+  merchant             User                  @relation(fields: [merchant_id], references: [user_id])
+  fundings             Funding[]
+  transactions         Transaction[]
+  inventoryCheckpoints InventoryCheckpoint[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([merchant_id])
+  @@index([status])
+}
+
+model Funding {
+  funding_id       String   @id @default(uuid())
+  contract_id      String
+  investor_id      String
+  amount_committed Decimal  @db.Decimal(12, 2)
+  timestamp        DateTime @default(now())
+
+  contract Contract @relation(fields: [contract_id], references: [contract_id])
+  investor User     @relation(fields: [investor_id], references: [user_id])
+
+  @@index([contract_id])
+  @@index([investor_id])
+}
+
+model Transaction {
+  txn_id          String   @id @default(uuid())
+  contract_id     String
+  payment_id      String?
+  gross_amount    Decimal  @db.Decimal(12, 2)
+  merchant_share  Decimal  @db.Decimal(12, 2)
+  investor_share  Decimal  @db.Decimal(12, 2)
+  platform_fee    Decimal  @db.Decimal(12, 2)
+  timestamp       DateTime @default(now())
+  idempotency_key String   @unique
+  status          String
+
+  contract Contract @relation(fields: [contract_id], references: [contract_id])
+
+  @@index([contract_id])
+  @@index([payment_id])
+}
+
+model InventoryCheckpoint {
+  checkpoint_id         String   @id @default(uuid())
+  merchant_id           String
+  contract_id           String
+  reported_stock        Int
+  timestamp             DateTime @default(now())
+  photo_url             String?
+  ai_inventory_estimate Int?
+  mismatch_flag         Boolean  @default(false)
+
+  merchant User     @relation(fields: [merchant_id], references: [user_id])
+  contract Contract @relation(fields: [contract_id], references: [contract_id])
+
+  @@index([merchant_id])
+  @@index([contract_id])
+}

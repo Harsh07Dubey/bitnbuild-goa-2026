@@ -5,6 +5,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Landing from './pages/Landing';
 import Login from './pages/Login';
 import OTPVerification from './pages/OTPVerification';
+import Playground from './pages/Playground';
 
 // Merchant Flow
 import MerchantLayout from './layouts/MerchantLayout';
@@ -38,6 +39,7 @@ export default function App() {
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
         <Route path="/verify-otp" element={<OTPVerification />} />
+        <Route path="/playground" element={<Playground />} />
 
         {/* Merchant Routes */}
         <Route element={<ProtectedRoute />}>

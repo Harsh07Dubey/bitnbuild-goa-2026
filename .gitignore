@@ -13,6 +13,8 @@ dist/
 build/
 .next/
 out/
+# Prisma generated client
+generated/
 
 # Logs
 npm-debug.log*
@@ -30,3 +32,10 @@ Thumbs.db
 *.njsproj
 *.sln
 *.sw?
+
+
+# AI/editor tool folders
+.agents/
+.claude/
+.cursor/
+.devin/

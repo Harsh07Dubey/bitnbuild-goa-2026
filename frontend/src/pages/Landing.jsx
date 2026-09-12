@@ -18,6 +18,7 @@ import {
   ChevronRight
 } from 'lucide-react';
 import ContractCard from '../components/ContractCard';
+import umeedLogo from '../assets/umeed-logo.png';
 
 // Hero text container animation as required
 const containerVariants = {
@@ -109,15 +110,19 @@ export default function Landing() {
           {/* Minimalist Logo & Navigation Row */}
           <div className="max-w-7xl mx-auto px-4 sm:px-8 py-4 flex items-center justify-between">
             <Link to="/" className="flex items-center gap-3 group">
-              <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-[#2563EB] to-blue-900 flex items-center justify-center border border-blue-400/30 shadow-md shadow-blue-500/20 group-hover:border-blue-400 transition-colors">
-                <Layers className="w-5 h-5 text-white" />
+              <div className="w-10 h-10 rounded-lg overflow-hidden border border-blue-400/30 shadow-md shadow-blue-500/20 group-hover:border-blue-400 transition-colors bg-white/5">
+                <img
+                  src={umeedLogo}
+                  alt="Umeed logo"
+                  className="w-full h-full object-contain p-1.5"
+                />
               </div>
               <div className="flex flex-col">
-                <span className="font-serif text-2xl font-bold tracking-tight text-white leading-none">
-                  Credit<span className="text-[#2563EB]">Flow</span>
+                <span className="font-serif text-2xl font-bold tracking-tight">
+                  Umeed
                 </span>
-                <span className="text-[10px] font-mono tracking-widest text-slate-400 uppercase">
-                  Revenue Protocol
+                <span className="text-[10px] font-mono tracking-widest text-slate-400">
+                  Small Steps • Brighter Tomorrows
                 </span>
               </div>
             </Link>

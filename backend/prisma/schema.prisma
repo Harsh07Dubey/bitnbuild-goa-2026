@@ -16,6 +16,11 @@ model User {
   trust_score     Decimal? @db.Decimal(5, 2)
   ai_score_source String?
 
+  otp_hash         String?
+  otp_expires_at   DateTime?
+  otp_attempts     Int       @default(0)
+  otp_last_sent_at DateTime?
+
   contracts            Contract[]
   fundings             Funding[]
   inventoryCheckpoints InventoryCheckpoint[]

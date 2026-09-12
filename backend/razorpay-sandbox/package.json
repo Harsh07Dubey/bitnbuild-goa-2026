@@ -1,0 +1,16 @@
+{
+  "name": "creditflow-razorpay-sandbox",
+  "version": "1.0.0",
+  "description": "Isolated Razorpay sandbox helper for CreditFlow / FairFuture hackathon presentations",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^16.6.1",
+    "express": "^4.22.2",
+    "razorpay": "^2.9.8"
+  }
+}

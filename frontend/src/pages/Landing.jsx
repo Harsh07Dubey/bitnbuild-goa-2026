@@ -82,15 +82,26 @@ export default function Landing() {
           </div>
         </Link>
 
-        <nav className="hidden lg:flex items-center gap-8 text-sm font-semibold text-slate-300">
-          <a href="#artifact" className="hover:text-emerald-400 transition-colors">Split Engine</a>
-          <a href="#marketplace" className="hover:text-emerald-400 transition-colors">Live Marketplace</a>
-          <a href="#pillars" className="hover:text-emerald-400 transition-colors">Trust Pillars</a>
-          <Link to="/playground" className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/15 border border-emerald-400/40 text-emerald-300 text-xs font-mono font-bold shadow-[0_0_15px_rgba(16,185,129,0.2)]">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            Playground <span className="bg-emerald-400 text-slate-950 px-1.5 py-0.5 rounded text-[10px] font-black">LIVE</span>
-          </Link>
-        </nav>
+            <nav className="hidden lg:flex items-center gap-8 text-sm font-medium text-slate-600">
+              <a href="#artifact" className="hover:text-slate-900 transition-colors">
+                Split Architecture
+              </a>
+              <a href="#marketplace" className="hover:text-slate-900 transition-colors">
+                Marketplace
+              </a>
+              <a href="#pillars" className="hover:text-slate-900 transition-colors">
+                Trust Framework
+              </a>
+              <Link
+                to="/investor/marketplace"
+                className="inline-flex items-center gap-1.5 text-blue-600 hover:text-blue-700 transition-colors font-semibold"
+              >
+                <span>Marketplace</span>
+                <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-blue-50 text-blue-600 border border-blue-200">
+                  Live
+                </span>
+              </Link>
+            </nav>
 
         <div className="flex items-center gap-4">
           <Link to="/login" className="text-xs font-mono font-bold text-slate-300 hover:text-white px-3 py-2 rounded-xl transition-colors">
@@ -119,135 +130,10 @@ export default function Landing() {
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                 LIVE SETTLEMENT
               </div>
-<<<<<<< Updated upstream
-              <div className="flex flex-col">
-                <span className="font-serif text-2xl font-bold tracking-tight text-slate-900">
-                  Umeed
-                </span>
-                <span className="text-[10px] font-mono tracking-widest text-slate-500">
-                  Small Steps • Brighter Tomorrows
-                </span>
-              </div>
-            </Link>
-
-            <nav className="hidden lg:flex items-center gap-8 text-sm font-medium text-slate-600">
-              <a href="#artifact" className="hover:text-slate-900 transition-colors">
-                Split Architecture
-              </a>
-              <a href="#marketplace" className="hover:text-slate-900 transition-colors">
-                How It Works
-              </a>
-              <a href="#pillars" className="hover:text-slate-900 transition-colors">
-                Trust Framework
-              </a>
-              <Link
-                to="/investor/marketplace"
-                className="inline-flex items-center gap-1.5 text-blue-600 hover:text-blue-700 transition-colors font-semibold"
-              >
-                <span>Marketplace</span>
-                <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-blue-50 text-blue-600 border border-blue-200">
-                  Live
-                </span>
-              </Link>
-            </nav>
-
-            <div className="flex items-center gap-2 sm:gap-3">
-              <Link
-                to="/login"
-                className="text-xs font-mono font-medium text-slate-600 hover:text-slate-900 px-2.5 sm:px-3 py-2 rounded-lg border border-transparent hover:border-slate-200 transition-all"
-              >
-                Sign In
-              </Link>
-              <Link
-                to="/login?role=investor"
-                className="text-xs font-medium bg-[#2563EB] hover:bg-blue-700 text-white px-3 sm:px-4 py-2 rounded-lg transition-all shadow-md shadow-blue-500/30 flex items-center gap-1.5"
-              >
-                <span>Investor Portal</span>
-                <ChevronRight className="w-3.5 h-3.5 text-blue-100" />
-              </Link>
-            </div>
-          </div>
-        </header>
-
-        {/* ========================================================
-            HERO NARRATIVE & MONUMENTAL TYPOGRAPHY
-        ======================================================== */}
-        <div className="relative z-20 max-w-5xl mx-auto px-4 sm:px-6 pt-12 sm:pt-16 md:pt-24 pb-12 sm:pb-16 text-center flex flex-col items-center">
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-            className="flex flex-col items-center"
-          >
-            <motion.div variants={itemVariants} className="mb-6">
-              <div className="inline-flex items-center gap-2 px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full border border-amber-300 bg-gradient-to-r from-amber-50 via-white to-amber-50 backdrop-blur-md text-[11px] sm:text-xs font-mono text-amber-700 shadow-md shadow-amber-200/60 animate-pulse">
-                <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-                <span className="tracking-wider">NEXT-GEN POINT-OF-SALE UNDERWRITING</span>
-              </div>
-            </motion.div>
-
-            <motion.h1
-              variants={itemVariants}
-              className="font-serif tracking-tight text-4xl sm:text-6xl md:text-7xl lg:text-8xl text-slate-900 font-medium leading-[1.08] max-w-4xl drop-shadow-sm"
-            >
-              Capital That Moves With{' '}
-              <span className="italic font-normal text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-emerald-500 to-amber-500 animate-gradient-text">
-                Daily Commerce.
-              </span>
-            </motion.h1>
-
-            <motion.p
-              variants={itemVariants}
-              className="mt-5 sm:mt-6 text-slate-600 max-w-2xl text-base sm:text-lg md:text-xl font-normal leading-relaxed text-center px-2"
-            >
-              Zero predatory compound interest. Working capital funded directly by marketplace investors and repaid programmatically at the point of sale.
-            </motion.p>
-
-            <motion.div
-              variants={itemVariants}
-              className="mt-8 sm:mt-10 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 w-full max-w-lg px-2"
-            >
-              <Link
-                to="/merchant/onboarding"
-                className="w-full sm:w-auto text-center bg-[#059669] hover:bg-emerald-700 text-white font-semibold px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/35 hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-2 group cursor-pointer"
-              >
-                <span>Merchant Entry</span>
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </Link>
-
-              <Link
-                to="/login?role=investor"
-                className="w-full sm:w-auto text-center bg-[#2563EB] hover:bg-blue-700 text-white font-semibold px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl shadow-lg shadow-blue-500/25 hover:shadow-blue-500/35 hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-2 group cursor-pointer"
-              >
-                <span>Investor Portal & Signup</span>
-                <ArrowUpRight className="w-4 h-4 text-blue-100 group-hover:translate-x-0.5 transition-transform" />
-              </Link>
-            </motion.div>
-
-            <motion.div
-              variants={itemVariants}
-              className="mt-10 flex flex-wrap items-center justify-center gap-6 text-xs text-slate-500 font-mono"
-            >
-              <div className="flex items-center gap-1.5 bg-white/80 border border-slate-200 rounded-full px-3 py-1.5 shadow-sm">
-                <CheckCircle2 className="w-3.5 h-3.5 text-[#059669]" />
-                <span>Zero Collateral Friction</span>
-              </div>
-              <div className="flex items-center gap-1.5 bg-white/80 border border-slate-200 rounded-full px-3 py-1.5 shadow-sm">
-                <CheckCircle2 className="w-3.5 h-3.5 text-[#059669]" />
-                <span>100% Escrow Milestone Protected</span>
-              </div>
-              <div className="flex items-center gap-1.5 bg-white/80 border border-slate-200 rounded-full px-3 py-1.5 shadow-sm">
-                <CheckCircle2 className="w-3.5 h-3.5 text-[#059669]" />
-                <span>Automated UPI Split Settlement</span>
-              </div>
-            </motion.div>
-          </motion.div>
-=======
               <div className="text-xs font-black text-white font-mono">₹1,850 Split Executed</div>
               <div className="text-[10px] text-slate-400">Pooja General Store • 2s ago</div>
             </div>
           </div>
->>>>>>> Stashed changes
         </div>
 
         <div className="absolute top-44 right-4 hidden xl:block animate-bounce" style={{ animationDuration: '7.5s' }}>
@@ -298,19 +184,17 @@ export default function Landing() {
             Zero predatory interest rates. Working capital funded directly by community investors and repaid programmatically via micro-splits on every customer POS transaction.
           </motion.p>
 
-          {/* CTA Buttons */}
-          <motion.div
-            variants={itemVariants}
-            className="mt-9 flex flex-col sm:flex-row items-center justify-center gap-4 w-full max-w-md"
-          >
-            <Link
-              to="/merchant/contract/create"
-              className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-gradient-to-r from-emerald-400 via-teal-400 to-emerald-500 text-slate-950 font-black text-base shadow-[0_0_30px_rgba(16,185,129,0.4)] hover:shadow-[0_0_45px_rgba(16,185,129,0.7)] hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-3 group"
+            <motion.div
+              variants={itemVariants}
+              className="mt-8 sm:mt-10 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 w-full max-w-lg px-2"
             >
-              <Store className="w-5 h-5 text-slate-950" />
-              <span>Merchant Portal</span>
-              <ArrowRight className="w-5 h-5 text-slate-950 group-hover:translate-x-1 transition-transform" />
-            </Link>
+              <Link
+                to="/merchant/contract/create"
+                className="w-full sm:w-auto text-center bg-[#059669] hover:bg-emerald-700 text-white font-semibold px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/35 hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-2 group cursor-pointer"
+              >
+                <span>Merchant Entry</span>
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </Link>
 
             <Link
               to="/playground"

@@ -176,6 +176,10 @@ const createContract = async (req, res) => {
 const getContracts = async (req, res) => {
   try {
     const contracts = await prisma.contract.findMany({
+      where: {
+        status: "Listed",
+      },
+        
       orderBy: {
         createdAt: "desc",
       },

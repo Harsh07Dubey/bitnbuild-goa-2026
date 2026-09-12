@@ -3,7 +3,7 @@ const prisma = require("../config/prisma");
 const createFunding = async (req, res) => {
   try {
     // Only investors can fund contracts
-    if (req.user.role !== "investor") {
+    if (String(req.user.role).toLowerCase() !== "investor") {
         return res.status(403).json({
             success: false,
             message: "Only investors can fund contracts",
@@ -182,7 +182,7 @@ const getInvestorFundings = async (req, res) => {
             message: "You can only view your own funding history",
         });
     }
-    
+
     const { investorId } = req.params;
 
     if (investorId !== req.user.user_id) {

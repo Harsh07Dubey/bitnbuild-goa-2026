@@ -30,17 +30,21 @@ const sendOtp = async (userId, phone) => {
       otp_last_sent_at: new Date(),
     },
   });
+  
+  if (process.env.OTP_TEST_MODE === "true") {
+    console.log(`[OTP TEST MODE] User: ${userId} | OTP: ${otp}`);
+  } else {
+    const client = twilio(
+        process.env.TWILIO_ACCOUNT_SID,
+        process.env.TWILIO_AUTH_TOKEN
+    );
 
-  const client = twilio(
-    process.env.TWILIO_ACCOUNT_SID,
-    process.env.TWILIO_AUTH_TOKEN
-  );
-
-  await client.messages.create({
-    body: `Your FairFuture verification OTP is ${otp}. It expires in 5 minutes.`,
-    from: process.env.TWILIO_PHONE_NUMBER,
-    to: phone,
-  });
+    await client.messages.create({
+            body: `Your FairFuture verification OTP is ${otp}. It expires in 5 minutes.`,
+        from: process.env.TWILIO_PHONE_NUMBER,
+        to: phone,
+    });
+  }
 
   return {
     success: true,

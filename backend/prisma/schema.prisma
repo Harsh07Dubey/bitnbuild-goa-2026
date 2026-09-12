@@ -12,6 +12,7 @@ model User {
   name            String
   phone           String?
   email           String   @unique
+  password_hash   String
   verified_flag   Boolean  @default(false)
   trust_score     Decimal? @db.Decimal(5, 2)
   ai_score_source String?

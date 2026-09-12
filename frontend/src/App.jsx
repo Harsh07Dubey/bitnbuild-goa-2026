@@ -64,8 +64,9 @@ export default function App() {
         <Route path="/playground" element={<PlaygroundPassThrough />} />
         <Route path="/marketplace" element={<Navigate to="/investor/marketplace" replace />} />
 
-        {/* Merchant Routes */}
+        {/* Onboarding Routes */}
         <Route path="/merchant/onboarding" element={<MerchantOnboarding />} />
+        <Route path="/investor/onboarding" element={<InvestorOnboarding />} />
 
         <Route element={<ProtectedRoute />}>
           <Route path="/merchant" element={<MerchantLayout />}>

@@ -13,16 +13,17 @@ export default function Sidebar({
   const isInvestor = activeRole === 'investor';
 
   const investorLinks = [
-    { label: 'Marketplace', path: '/playground' },
-    { label: 'My Portfolio', path: '/playground?tab=portfolio' },
-    { label: 'Analytics', path: '/playground?tab=analytics' }
+    { label: 'Marketplace', path: '/investor/marketplace' },
+    { label: 'Portfolio & Analytics', path: '/investor/dashboard' },
+    { label: 'LP Onboarding Profile', path: '/investor/onboarding' }
   ];
 
   const merchantLinks = [
     { label: 'Dashboard', path: '/merchant/dashboard' },
     { label: 'Create Contract', path: '/merchant/contract/create' },
-    { label: 'POS Terminal', path: '/merchant/qr' },
-    { label: 'Inventory', path: '/merchant/inventory' }
+    { label: 'POS QR Terminal', path: '/merchant/qr' },
+    { label: 'Stock Inventory', path: '/merchant/inventory' },
+    { label: 'Shop Onboarding Profile', path: '/merchant/onboarding' }
   ];
 
   const activeLinks = isInvestor ? investorLinks : merchantLinks;

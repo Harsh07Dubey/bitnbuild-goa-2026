@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -13,10 +13,13 @@ import {
   Coins,
   Sliders,
   HelpCircle,
-  Info
+  Info,
+  Loader2
 } from 'lucide-react';
 import TrustScoreCard from '../../components/TrustScoreCard';
 import { formatCurrency } from '../../utils/formatCurrency';
+import { getTrustScore } from '../../services/aiService';
+import { createContract, listContract } from '../../services/contractService';
 
 export default function CreateContract() {
   const navigate = useNavigate();
@@ -30,25 +33,57 @@ export default function CreateContract() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submittedSuccess, setSubmittedSuccess] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
-  // Dynamic AI baseline calculations
-  // AI Recommended Cap is normally 1.20x of requested principal, capped at ₹60,000 for standard tier
+  // AI Underwriting State
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiEvaluation, setAiEvaluation] = useState({
+    trust_score: 82,
+    max_contract_cap: 60000,
+    risk_rationale: 'AI Underwriting: Positive daily POS run-rate justifies requested advance.',
+  });
+
+  // Debounced live AI Trust Score evaluation on form changes
+  useEffect(() => {
+    let isCancelled = false;
+    setAiLoading(true);
+
+    const timer = setTimeout(async () => {
+      try {
+        const result = await getTrustScore({
+          principal,
+          revenue: 180000,
+          dailyPosVolume: 28500,
+          businessAge: 3.5,
+          gstVerified: true,
+          repaymentRate: 96,
+        });
+        if (!isCancelled) {
+          setAiEvaluation(result);
+        }
+      } catch (err) {
+        console.warn('AI scoring debounce error:', err);
+      } finally {
+        if (!isCancelled) setAiLoading(false);
+      }
+    }, 450);
+
+    return () => {
+      isCancelled = true;
+      clearTimeout(timer);
+    };
+  }, [principal, sharePct, durationDays]);
+
+  // Dynamic AI recommended cap
   const aiRecommendedCap = useMemo(() => {
-    return Math.round(principal * 1.20);
-  }, [principal]);
+    return aiEvaluation.max_contract_cap || Math.round(principal * 1.20);
+  }, [aiEvaluation, principal]);
 
   // Safety cap evaluation
-  const isWithinSafetyCap = capAmount <= aiRecommendedCap && principal <= 150000;
+  const isWithinSafetyCap = capAmount <= aiRecommendedCap && principal <= 500000;
 
-  // Dynamic Trust Score recalculation based on principal and terms
-  const currentTrustScore = useMemo(() => {
-    let score = 82;
-    if (principal > 100000) score -= 8;
-    if (capAmount > aiRecommendedCap) score -= 12;
-    if (sharePct < 12) score -= 5;
-    if (durationDays > 120) score -= 4;
-    return Math.max(35, Math.min(96, score));
-  }, [principal, capAmount, aiRecommendedCap, sharePct, durationDays]);
+  // Active Trust Score
+  const currentTrustScore = aiEvaluation.trust_score || 82;
 
   // Estimated daily repayment from POS based on average sales of ₹28,500/day
   const estimatedDailySplit = useMemo(() => {
@@ -61,18 +96,43 @@ export default function CreateContract() {
     setCapAmount(Math.round(principal * multiple));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setErrorMessage('');
 
-    setTimeout(() => {
+    try {
+      // 1. Create contract on live backend
+      const newContract = await createContract({
+        principal,
+        share_pct: sharePct,
+        cap_amount: capAmount,
+        duration_days: durationDays,
+        weekly_minimum: weeklyMinimum,
+        trustScore: currentTrustScore,
+        business_age_months: 42,
+        monthly_revenue: 180000,
+        previous_repayment_rate: 96,
+      });
+
+      // 2. Transition contract state to LISTED for marketplace visibility
+      if (newContract?.id) {
+        await listContract(newContract.id);
+      }
+
       setIsSubmitting(false);
       setSubmittedSuccess(true);
+
       setTimeout(() => {
         navigate('/merchant/dashboard');
       }, 1600);
-    }, 1200);
+    } catch (err) {
+      console.warn('Contract creation error:', err);
+      setErrorMessage(err.message || 'Failed to create contract on server.');
+      setIsSubmitting(false);
+    }
   };
+
 
   return (
     <div className="space-y-8 pb-12">

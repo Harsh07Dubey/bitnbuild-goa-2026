@@ -6,7 +6,7 @@
  * - Mode B: Optional Sandbox Helper via Port 5001 (auto-falls back to Mode A if offline)
  */
 import axios from 'axios';
-import { createPayment } from './paymentService.js';
+import { createPayment, createPaymentOrder } from './paymentService.js';
 
 const RAZORPAY_SCRIPT_SRC = 'https://checkout.razorpay.com/v1/checkout.js';
 const DEFAULT_KEY_ID = 'rzp_test_TapGP2kHFhqm7a';
@@ -34,10 +34,24 @@ export function loadRazorpayScript() {
 }
 
 /**
- * Attempts to fetch a server-generated order_id from the optional sandbox helper.
+ * Attempts to fetch a server-generated order_id from the live backend or optional sandbox helper.
  * If unreachable or fails, returns null so the client falls back to direct test mode.
  */
 async function fetchSandboxOrder(amountInPaise, contractId) {
+  // 1. Primary: Request order via live backend paymentService
+  try {
+    const grossAmount = Math.max(1, Math.round(amountInPaise / 100));
+    const res = await createPaymentOrder(contractId || 'CON-001', { amount: grossAmount });
+    if (res?.order?.id) {
+      console.info('[razorpayService] Live backend order acquired:', res.order.id);
+      return res.order.id;
+    }
+    if (res?.id) return res.id;
+  } catch (err) {
+    console.warn('[razorpayService] Live backend createPaymentOrder failed, falling back to sandbox/direct test mode:', err.message);
+  }
+
+  // 2. Secondary: Local sandbox helper if running
   try {
     const res = await axios.post(
       `${SANDBOX_BASE_URL}/create-order`,
@@ -58,7 +72,7 @@ async function fetchSandboxOrder(amountInPaise, contractId) {
     return null;
   } catch (err) {
     console.warn(
-      '[razorpayService] Mode B sandbox unreachable (port 5001). Activating resilient Mode A direct test checkout.'
+      '[razorpayService] Mode B sandbox unreachable. Activating resilient direct test checkout.'
     );
     return null;
   }

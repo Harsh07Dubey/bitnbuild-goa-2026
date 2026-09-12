@@ -1,9 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Outlet, Link } from 'react-router-dom';
 import { ArrowUpRight, ShieldCheck } from 'lucide-react';
 import Navbar from '../components/Navbar';
+import Sidebar from '../components/Sidebar';
+import { useAuth } from '../context/AuthContext';
 
 export default function InvestorLayout() {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { switchRole } = useAuth();
+
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-[#0F172A] font-sans flex flex-col selection:bg-blue-600 selection:text-white">
       {/* Top micro-status bar */}
@@ -25,12 +30,25 @@ export default function InvestorLayout() {
       </div>
 
       {/* Main Persistent Navbar */}
-      <Navbar activeRole="investor" brandTitle="UMEED" />
+      <Navbar
+        activeRole="investor"
+        brandTitle="UMEED"
+        onMobileMenuOpen={() => setIsMobileMenuOpen(true)}
+      />
+
+      {/* Mobile Drawer */}
+      <Sidebar
+        isOpen={isMobileMenuOpen}
+        onClose={() => setIsMobileMenuOpen(false)}
+        activeRole="investor"
+        onRoleChange={switchRole}
+      />
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         <Outlet />
       </main>
+
 
       {/* Consistent Footer */}
       <footer className="border-t border-[#E2E8F0] bg-white py-6 mt-12">

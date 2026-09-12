@@ -24,7 +24,7 @@ import {
 import QRCodeCard from '../../components/QRCodeCard';
 import PaymentCard from '../../components/PaymentCard';
 import { formatCurrency } from '../../utils/formatCurrency';
-import { getRecentPayments } from '../../services/paymentService';
+import { getRecentPayments, fetchTransactions } from '../../services/paymentService';
 
 export default function MerchantQR() {
   const [isSimulatorOpen, setIsSimulatorOpen] = useState(false);
@@ -36,10 +36,26 @@ export default function MerchantQR() {
   const contractId = 'CON-001';
   const payUrl = 'https://fairfuture.app/pay/CON-001';
 
-  // Load recent transactions
+  // Load recent transactions from backend API with fallback
   useEffect(() => {
-    setTransactions(getRecentPayments());
-  }, []);
+    let isMounted = true;
+    async function loadTx() {
+      try {
+        const txList = await fetchTransactions(contractId);
+        if (isMounted && Array.isArray(txList) && txList.length > 0) {
+          setTransactions(txList);
+        } else if (isMounted) {
+          setTransactions(getRecentPayments());
+        }
+      } catch {
+        if (isMounted) setTransactions(getRecentPayments());
+      }
+    }
+    loadTx();
+    return () => {
+      isMounted = false;
+    };
+  }, [contractId]);
 
   // When payment simulator completes inside modal
   const handlePaymentSuccess = (tx) => {

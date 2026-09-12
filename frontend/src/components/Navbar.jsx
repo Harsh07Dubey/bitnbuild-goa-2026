@@ -148,14 +148,19 @@ export default function Navbar({
           )}
         </div>
 
-        {/* Mobile Menu Trigger */}
+        {/* Mobile Menu Trigger & Avatar */}
         <div className="flex items-center md:hidden gap-2">
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shadow-xs ${
+            isInvestor ? 'bg-[#0F172A]' : 'bg-[#2563EB]'
+          }`}>
+            {auth?.user?.initials || (isInvestor ? 'AM' : 'SG')}
+          </div>
           <button
             onClick={onMobileMenuOpen}
-            className="p-2 rounded-xl text-slate-600 hover:bg-slate-100 transition-colors"
+            className="p-1.5 rounded-xl text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
             aria-label="Open Mobile Menu"
           >
-            <Menu className="w-6 h-6" />
+            <Menu className="w-5 h-5" />
           </button>
         </div>
       </div>

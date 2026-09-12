@@ -16,7 +16,8 @@ import {
 } from 'lucide-react';
 import { formatCurrency } from '../../utils/formatCurrency';
 import { useAuth } from '../../context/AuthContext';
-import { fetchContracts, fundContract } from '../../services/contractService';
+import { getContracts } from '../../services/contractService';
+import { fundContract } from '../../services/fundingService';
 
 export default function Marketplace() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -49,7 +50,7 @@ export default function Marketplace() {
     async function loadData() {
       setIsLoading(true);
       try {
-        const data = await fetchContracts();
+        const data = await getContracts();
         if (isMounted) {
           setContracts(data);
         }
@@ -185,7 +186,7 @@ export default function Marketplace() {
     }
 
     try {
-      await fundContract(selectedContract.id, amt);
+      await fundContract(selectedContract.id, { amount: amt });
 
       // Update local contract state
       setContracts((prev) =>

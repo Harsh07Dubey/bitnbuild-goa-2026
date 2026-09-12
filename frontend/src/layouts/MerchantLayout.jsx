@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { NavLink, Link, Outlet, useLocation } from 'react-router-dom';
 import {
   Store,
@@ -11,11 +11,16 @@ import {
   TrendingUp,
   Layers,
   ChevronRight,
-  ExternalLink
+  ExternalLink,
+  Menu
 } from 'lucide-react';
+import Sidebar from '../components/Sidebar';
+import { useAuth } from '../context/AuthContext';
 
 export default function MerchantLayout() {
   const location = useLocation();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { switchRole, user } = useAuth();
 
   const navItems = [
     { name: 'Dashboard', path: '/merchant/dashboard', icon: LayoutDashboard },
@@ -33,11 +38,11 @@ export default function MerchantLayout() {
         <div className="bg-[#0A0F1D] text-slate-400 px-4 sm:px-8 py-1.5 text-[11px] font-mono flex items-center justify-between border-b border-white/5">
           <div className="flex items-center gap-2">
             <span className="w-1.5 h-1.5 rounded-full bg-[#059669] animate-pulse" />
-            <span className="text-slate-300 font-semibold">FAIRFUTURE // MERCHANT OPERATING SYSTEM</span>
+            <span className="text-slate-300 font-semibold truncate">FAIRFUTURE // MERCHANT OPERATING SYSTEM</span>
             <span className="hidden md:inline text-slate-500">• REVENUE SHARE ENGINE ACTIVE</span>
           </div>
-          <div className="flex items-center gap-4 text-slate-400">
-            <Link to="/playground" className="hover:text-blue-400 transition-colors flex items-center gap-1">
+          <div className="flex items-center gap-4 text-slate-400 shrink-0">
+            <Link to="/investor/marketplace" className="hover:text-blue-400 transition-colors flex items-center gap-1">
               <span>Switch to Investor Terminal</span>
               <ArrowUpRight className="w-3 h-3" />
             </Link>
@@ -119,21 +124,30 @@ export default function MerchantLayout() {
 
             {/* Merchant Profile Badge */}
             <div className="flex items-center gap-2.5 py-1 px-2 rounded-full hover:bg-slate-100 transition-colors cursor-pointer">
-              <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-700 text-white font-bold text-xs flex items-center justify-center shadow-xs">
-                SG
+              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-700 text-white font-bold text-xs flex items-center justify-center shadow-xs">
+                {user?.initials || 'SG'}
               </div>
-              <div className="flex flex-col text-left">
-                <span className="text-xs font-bold text-[#0F172A] leading-tight">
-                  Sharma General Store
+              <div className="hidden sm:flex flex-col text-left">
+                <span className="text-xs font-bold text-[#0F172A] leading-tight truncate max-w-[120px]">
+                  {user?.stallName || user?.name || 'Sharma General Store'}
                 </span>
-                <span className="text-[10px] font-mono text-slate-500">ID: CON-001</span>
+                <span className="text-[10px] font-mono text-slate-500">ID: {user?.contractId || 'CON-001'}</span>
               </div>
             </div>
+
+            {/* Mobile Menu Trigger */}
+            <button
+              onClick={() => setIsMobileMenuOpen(true)}
+              className="p-1.5 rounded-xl text-slate-600 hover:bg-slate-100 md:hidden transition-colors cursor-pointer"
+              aria-label="Open menu"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
           </div>
         </div>
 
         {/* Mobile Horizontal Scroll Nav */}
-        <div className="md:hidden overflow-x-auto border-t border-slate-100 px-4 py-2 flex items-center gap-2 bg-slate-50/70">
+        <div className="md:hidden overflow-x-auto border-t border-slate-100 px-4 py-2 flex items-center gap-2 bg-slate-50/70 no-scrollbar">
           {navItems.map((item) => (
             <NavLink
               key={item.name}
@@ -150,8 +164,16 @@ export default function MerchantLayout() {
         </div>
       </header>
 
+      {/* Mobile Drawer */}
+      <Sidebar
+        isOpen={isMobileMenuOpen}
+        onClose={() => setIsMobileMenuOpen(false)}
+        activeRole="merchant"
+        onRoleChange={switchRole}
+      />
+
       {/* Main Outlet View */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         <Outlet />
       </main>
     </div>

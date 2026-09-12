@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
   ShieldCheck,
@@ -12,29 +12,56 @@ import {
   ArrowUpRight,
   Wallet,
   Sparkles,
-  ChevronRight
+  ChevronRight,
+  RefreshCw
 } from 'lucide-react';
 import TransactionTable from '../../components/TransactionTable';
 import { formatCurrency } from '../../utils/formatCurrency';
+import { getMerchantDashboard } from '../../services/dashboardService';
 
 export default function MerchantDashboard() {
-  // Contract CON-001 Data
+  const [dashboardData, setDashboardData] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+    async function loadData() {
+      setIsLoading(true);
+      try {
+        const data = await getMerchantDashboard();
+        if (isMounted) setDashboardData(data);
+      } catch (err) {
+        console.warn('Failed to fetch live merchant dashboard metrics:', err);
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    }
+    loadData();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Contract data with live backend override
+  const summary = dashboardData?.summary || dashboardData?.contract || {};
+  const activeContractFromApi = dashboardData?.contracts?.[0] || dashboardData?.contract;
+
   const contract = {
-    id: 'CON-001',
-    merchantName: 'Sharma General Store',
-    disbursedPrincipal: 150000,
-    repaymentCap: 180000,
-    totalRepaid: 42500,
+    id: activeContractFromApi?.contract_id || activeContractFromApi?.id || 'CON-001',
+    merchantName: activeContractFromApi?.merchantName || 'Sharma General Store',
+    disbursedPrincipal: activeContractFromApi?.principal ? Number(activeContractFromApi.principal) : (summary?.total_principal || 150000),
+    repaymentCap: activeContractFromApi?.cap_amount ? Number(activeContractFromApi.cap_amount) : 180000,
+    totalRepaid: summary?.total_repaid !== undefined ? Number(summary.total_repaid) : 42500,
     weeklyMinimum: 2500,
     weeklySatisfied: 3125,
     daysRemaining: 64,
     totalDuration: 90,
     trustScore: 82,
     trustStatus: 'High Trust',
-    revenueShare: 15
+    revenueShare: activeContractFromApi?.share_pct ? Number(activeContractFromApi.share_pct) * 100 : 15
   };
 
-  const progressPct = Math.round((contract.totalRepaid / contract.repaymentCap) * 100);
+  const progressPct = Math.round((contract.totalRepaid / (contract.repaymentCap || 1)) * 100);
 
   return (
     <div className="space-y-8 pb-12">

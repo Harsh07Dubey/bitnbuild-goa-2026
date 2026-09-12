@@ -1,332 +1,315 @@
+/**
+ * contractService.js — Contract Management Service
+ * Connects frontend to:
+ * - POST  /api/contracts
+ * - GET   /api/contracts
+ * - GET   /api/contracts/:contractId
+ * - PATCH /api/contracts/:contractId
+ * - POST  /api/contracts/:contractId/list
+ */
 import api from './api.js';
 
-// Initial Mock Marketplace Contracts Dataset
+// Initial Mock Marketplace Contracts Dataset (for offline/cold-start fallback)
 export const MOCK_CONTRACTS = [
   {
-    id: 'cf-101',
+    id: 'CON-001',
+    contract_id: 'CON-001',
     merchantName: 'Sharma General Store',
     category: 'Retail',
     subCategory: 'FMCG & Daily Essentials',
     location: 'Connaught Place, New Delhi',
-    status: 'LISTED',
+    status: 'ACTIVE',
     trustScore: 94,
+    trust_score: 94,
     targetPrincipal: 150000,
+    principal: 150000,
     revenueSharePercent: 12,
+    share_pct: 12,
     repaymentCap: 180000,
+    cap_amount: 180000,
     durationDays: 90,
-    fundedAmount: 112500,
+    duration_days: 90,
+    fundedAmount: 150000,
     dailyPosVolume: 32000,
     businessAge: '5.2 Years',
     gstVerified: true,
     riskNotes: 'A+ bank rating, consistently exceeds average monthly card sales by 18%. Zero historical payment bounces.',
-    investorCount: 14
+    investorCount: 14,
   },
   {
     id: 'cf-102',
+    contract_id: 'cf-102',
     merchantName: 'Fresh Bites Cafe',
     category: 'Food',
     subCategory: 'Artisanal Bakery & Cafe',
     location: 'Indiranagar, Bengaluru',
     status: 'LISTED',
     trustScore: 88,
+    trust_score: 88,
     targetPrincipal: 250000,
+    principal: 250000,
     revenueSharePercent: 14,
+    share_pct: 14,
     repaymentCap: 305000,
+    cap_amount: 305000,
     durationDays: 120,
+    duration_days: 120,
     fundedAmount: 200000,
     dailyPosVolume: 48000,
     businessAge: '3.8 Years',
     gstVerified: true,
     riskNotes: 'Prime footfall hub, verified Swiggy/Zomato POS reconciliation with steady recurring morning and evening peaks.',
-    investorCount: 22
+    investorCount: 22,
   },
   {
     id: 'cf-103',
+    contract_id: 'cf-103',
     merchantName: 'Prestige Apparel',
     category: 'Retail',
     subCategory: 'Designer Ethnic Wear',
     location: 'Bandra West, Mumbai',
     status: 'LISTED',
     trustScore: 82,
+    trust_score: 82,
     targetPrincipal: 320000,
+    principal: 320000,
     revenueSharePercent: 15,
+    share_pct: 15,
     repaymentCap: 396800,
+    cap_amount: 396800,
     durationDays: 105,
+    duration_days: 105,
     fundedAmount: 240000,
     dailyPosVolume: 56000,
     businessAge: '6.1 Years',
     gstVerified: true,
     riskNotes: 'Strong festive season sales surge, robust merchant loyalty database, 24% return on capital multiple.',
-    investorCount: 19
+    investorCount: 19,
   },
   {
     id: 'cf-104',
+    contract_id: 'cf-104',
     merchantName: 'QuickMart Grocery',
     category: 'Grocery',
     subCategory: 'Neighborhood Supermarket',
     location: 'Koramangala, Bengaluru',
     status: 'LISTED',
     trustScore: 91,
+    trust_score: 91,
     targetPrincipal: 400000,
-    revenueSharePercent: 10,
+    principal: 400000,
+    revenueSharePercent: 11,
+    share_pct: 11,
     repaymentCap: 472000,
-    durationDays: 90,
-    fundedAmount: 340000,
-    dailyPosVolume: 82000,
+    cap_amount: 472000,
+    durationDays: 150,
+    duration_days: 150,
+    fundedAmount: 310000,
+    dailyPosVolume: 65000,
     businessAge: '4.5 Years',
     gstVerified: true,
-    riskNotes: 'High inventory turnover (14 days), tied to localized quick delivery partner, spotless tax compliance.',
-    investorCount: 29
+    riskNotes: 'High volume staple retailer with predictable recurring basket sizes and top tier credit score.',
+    investorCount: 27,
   },
-  {
-    id: 'cf-105',
-    merchantName: 'Apex Health Wellness',
-    category: 'Retail',
-    subCategory: 'Pharmacy & Surgical Supplies',
-    location: 'Gachibowli, Hyderabad',
-    status: 'LISTED',
-    trustScore: 79,
-    targetPrincipal: 180000,
-    revenueSharePercent: 11,
-    repaymentCap: 212400,
-    durationDays: 75,
-    fundedAmount: 117000,
-    dailyPosVolume: 36000,
-    businessAge: '3.2 Years',
-    gstVerified: true,
-    riskNotes: 'Consistent chronic medicine subscription revenues, high defensibility against consumer spending slumps.',
-    investorCount: 11
-  },
-  {
-    id: 'cf-106',
-    merchantName: 'Chai Point Corner',
-    category: 'Food',
-    subCategory: 'QSR & Quick Snacks',
-    location: 'Cyber City, Gurugram',
-    status: 'LISTED',
-    trustScore: 68,
-    targetPrincipal: 120000,
-    revenueSharePercent: 16,
-    repaymentCap: 147600,
-    durationDays: 60,
-    fundedAmount: 72000,
-    dailyPosVolume: 26000,
-    businessAge: '2.1 Years',
-    gstVerified: true,
-    riskNotes: 'Corporate corridor location subject to hybrid working cyclicality, backed by healthy cash gross margins (62%).',
-    investorCount: 8
-  },
-  {
-    id: 'cf-107',
-    merchantName: 'Sri Balaji Electronics',
-    category: 'Retail',
-    subCategory: 'Consumer Electronics & Mobile',
-    location: 'T. Nagar, Chennai',
-    status: 'LISTED',
-    trustScore: 62,
-    targetPrincipal: 500000,
-    revenueSharePercent: 9,
-    repaymentCap: 585000,
-    durationDays: 150,
-    fundedAmount: 225000,
-    dailyPosVolume: 74000,
-    businessAge: '7.0 Years',
-    gstVerified: true,
-    riskNotes: 'Established wholesale/retail distributor. Slightly elevated supplier credit cycle, moderated by high collateral reserves.',
-    investorCount: 16
-  },
-  {
-    id: 'cf-108',
-    merchantName: 'Golden Spoon Kitchen',
-    category: 'Food',
-    subCategory: 'Cloud Kitchen Network',
-    location: 'Park Street, Kolkata',
-    status: 'LISTED',
-    trustScore: 41,
-    targetPrincipal: 100000,
-    revenueSharePercent: 18,
-    repaymentCap: 128000,
-    durationDays: 45,
-    fundedAmount: 38000,
-    dailyPosVolume: 19000,
-    businessAge: '1.4 Years',
-    gstVerified: false,
-    riskNotes: 'Rapidly expanding multi-brand cloud kitchen with limited seasonal track record. High potential yield with volatility.',
-    investorCount: 6
-  },
-  {
-    id: 'cf-109',
-    merchantName: 'Urban Nature Organics',
-    category: 'Grocery',
-    subCategory: 'Farm Produce & Cold Pressed Oils',
-    location: 'Aundh, Pune',
-    status: 'LISTED',
-    trustScore: 35,
-    targetPrincipal: 90000,
-    revenueSharePercent: 19,
-    repaymentCap: 115200,
-    durationDays: 40,
-    fundedAmount: 27000,
-    dailyPosVolume: 14500,
-    businessAge: '1.1 Years',
-    gstVerified: false,
-    riskNotes: 'New merchant with short banking history. Daily auto-sweep debits active to mitigate collection exposure.',
-    investorCount: 4
-  }
 ];
 
-// In-memory runtime store for live session state updates in mock mode
 let mockContractsState = [...MOCK_CONTRACTS];
 
 /**
- * Filter and sort mock contracts locally
+ * Normalizes backend contract entity to frontend component interface
  */
-function applyFiltersAndSort(contracts, filters = {}) {
-  let result = [...contracts];
-  const { category, duration, sort, search } = filters;
+function normalizeContract(c) {
+  if (!c) return null;
+  const id = c.contract_id || c.id;
+  const principal = Number(c.principal ?? c.targetPrincipal ?? 0);
+  const cap = Number(c.cap_amount ?? c.repaymentCap ?? Math.round(principal * 1.2));
+  const share = Number(c.share_pct ?? c.revenueSharePercent ?? 12);
+  const duration = Number(c.duration_days ?? c.durationDays ?? 90);
+  const totalRepaid = Number(c.total_repaid ?? 0);
 
-  if (category && category !== 'ALL') {
-    result = result.filter((c) => c.category?.toLowerCase() === category.toLowerCase());
+  // Compute funded amount from relations if present
+  let fundedAmount = Number(c.fundedAmount ?? 0);
+  if (Array.isArray(c.fundings)) {
+    fundedAmount = c.fundings.reduce((sum, f) => sum + Number(f.amount_committed || 0), 0);
   }
 
-  if (duration && duration !== 'ALL') {
-    if (duration === '60') result = result.filter((c) => c.durationDays <= 60);
-    else if (duration === '90') result = result.filter((c) => c.durationDays > 60 && c.durationDays <= 90);
-    else if (duration === '180') result = result.filter((c) => c.durationDays > 90);
-  }
-
-  if (search && search.trim()) {
-    const q = search.toLowerCase();
-    result = result.filter(
-      (c) =>
-        c.merchantName.toLowerCase().includes(q) ||
-        c.category.toLowerCase().includes(q) ||
-        c.location.toLowerCase().includes(q)
-    );
-  }
-
-  if (sort) {
-    if (sort === 'trust-desc') result.sort((a, b) => b.trustScore - a.trustScore);
-    else if (sort === 'progress-desc') {
-      result.sort((a, b) => b.fundedAmount / b.targetPrincipal - a.fundedAmount / a.targetPrincipal);
-    } else if (sort === 'rate-desc') result.sort((a, b) => b.revenueSharePercent - a.revenueSharePercent);
-    else if (sort === 'principal-asc') result.sort((a, b) => a.targetPrincipal - b.targetPrincipal);
-  }
-
-  return result;
-}
-
-/**
- * Fetch marketplace contracts with optional filter criteria
- * GET /api/contracts
- */
-export async function fetchContracts(filters = {}) {
-  try {
-    const res = await api.get('/contracts', { params: filters });
-    return res.data?.contracts || res.data || mockContractsState;
-  } catch (err) {
-    console.warn('[contractService] fetchContracts falling back to mock dataset:', err.message);
-    return applyFiltersAndSort(mockContractsState, filters);
-  }
-}
-
-/**
- * Fetch a single contract by ID
- * GET /api/contracts/:id
- */
-export async function fetchContractById(id) {
-  try {
-    const res = await api.get(`/contracts/${id}`);
-    return res.data?.contract || res.data;
-  } catch (err) {
-    console.warn(`[contractService] fetchContractById(${id}) falling back to mock:`, err.message);
-    const cleanId = String(id || '').toLowerCase();
-    const match = mockContractsState.find(
-      (c) =>
-        c.id.toLowerCase() === cleanId ||
-        c.id.replace(/^cf-/, '') === cleanId.replace(/^cf-/, '') ||
-        cleanId.includes(c.id.toLowerCase())
-    );
-    if (!match) {
-      return mockContractsState[0];
-    }
-    return match;
-  }
+  return {
+    ...c,
+    id,
+    contract_id: id,
+    merchantName: c.merchant?.name || c.merchantName || 'Verified Merchant Store',
+    category: c.category || 'Retail',
+    subCategory: c.subCategory || 'General Merchandise',
+    location: c.location || 'New Delhi, India',
+    status: (c.status || 'LISTED').toUpperCase(),
+    trustScore: Number(c.trust_score ?? c.trustScore ?? 85),
+    targetPrincipal: principal,
+    principal,
+    revenueSharePercent: share,
+    share_pct: share,
+    repaymentCap: cap,
+    cap_amount: cap,
+    durationDays: duration,
+    duration_days: duration,
+    fundedAmount,
+    totalRepaid,
+    investorCount: c.investorCount ?? (Array.isArray(c.fundings) ? c.fundings.length : 12),
+  };
 }
 
 /**
  * Create a new merchant financing contract
  * POST /api/contracts
  */
-export async function createContract(data) {
+export async function createContract(contractData) {
+  const payload = {
+    principal: Number(contractData.principal ?? contractData.targetPrincipal ?? 100000),
+    share_pct: Number(contractData.share_pct ?? contractData.revenueSharePercent ?? 15),
+    cap_amount: Number(contractData.cap_amount ?? contractData.repaymentCap ?? 120000),
+    duration_days: Number(contractData.duration_days ?? contractData.durationDays ?? 90),
+    apr_equivalent: Number(contractData.apr_equivalent ?? 18.5),
+    platform_fee_pct: Number(contractData.platform_fee_pct ?? 1.0),
+    weekly_minimum: Number(contractData.weekly_minimum ?? 2500),
+    business_age_months: Number(contractData.business_age_months ?? 36),
+    monthly_revenue: Number(contractData.monthly_revenue ?? 150000),
+    previous_repayment_rate: Number(contractData.previous_repayment_rate ?? 95),
+  };
+
   try {
-    const res = await api.post('/contracts', data);
-    return res.data?.contract || res.data;
+    const res = await api.post('/contracts', payload);
+    const contract = res.data?.contract || res.data?.data || res.data;
+    return normalizeContract(contract);
   } catch (err) {
-    console.warn('[contractService] createContract falling back to mock:', err.message);
+    console.warn('[contractService] createContract backend call failed, creating local sandbox mock:', err.message);
+
     const newContract = {
       id: `cf-${Math.floor(110 + Math.random() * 900)}`,
-      merchantName: data.merchantName || 'Merchant Partner',
-      category: data.category || 'Retail',
-      subCategory: data.subCategory || 'General Commercial',
-      location: data.location || 'Jaipur, Rajasthan',
-      status: 'LISTED',
-      trustScore: data.trustScore || 85,
-      targetPrincipal: Number(data.targetPrincipal) || 200000,
-      revenueSharePercent: Number(data.revenueSharePercent) || 12,
-      repaymentCap: Number(data.repaymentCap) || 240000,
-      durationDays: Number(data.durationDays) || 90,
+      merchantName: contractData.merchantName || 'Sharma General Store',
+      category: contractData.category || 'Retail',
+      subCategory: 'General Commercial',
+      location: contractData.location || 'Jaipur, Rajasthan',
+      status: 'DRAFT',
+      trustScore: contractData.trustScore || 85,
+      targetPrincipal: payload.principal,
+      revenueSharePercent: payload.share_pct,
+      repaymentCap: payload.cap_amount,
+      durationDays: payload.duration_days,
       fundedAmount: 0,
-      dailyPosVolume: Number(data.dailyPosVolume) || 35000,
-      businessAge: data.businessAge || '3.0 Years',
-      gstVerified: Boolean(data.gstVerified ?? true),
-      riskNotes: data.riskNotes || 'Newly originated contract approved through underwriting scan.',
       investorCount: 0,
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
     };
+
     mockContractsState = [newContract, ...mockContractsState];
     return newContract;
   }
 }
 
 /**
- * Fund / invest in a contract
- * POST /api/contracts/:id/fund
+ * Get all contracts with optional filters (category, status, etc.)
+ * GET /api/contracts
+ */
+export async function getContracts(params = {}) {
+  try {
+    const res = await api.get('/contracts', { params });
+    const rawList = res.data?.contracts || res.data?.data || res.data;
+
+    if (Array.isArray(rawList) && rawList.length > 0) {
+      return rawList.map(normalizeContract);
+    }
+    return mockContractsState.map(normalizeContract);
+  } catch (err) {
+    console.warn('[contractService] getContracts failed, falling back to mock fixtures:', err.message);
+    return mockContractsState.map(normalizeContract);
+  }
+}
+
+// Backward-compatible alias for getContracts
+export const fetchContracts = getContracts;
+
+/**
+ * Fetch a single contract by ID
+ * GET /api/contracts/:contractId
+ */
+export async function fetchContractById(contractId) {
+  try {
+    const res = await api.get(`/contracts/${contractId}`);
+    const raw = res.data?.contract || res.data?.data || res.data;
+    return normalizeContract(raw);
+  } catch (err) {
+    console.warn(`[contractService] fetchContractById(${contractId}) fallback:`, err.message);
+    const match = mockContractsState.find(
+      (c) =>
+        c.id.toLowerCase() === String(contractId).toLowerCase() ||
+        c.id.replace(/^cf-/, '') === String(contractId).replace(/^cf-/, '')
+    );
+    return normalizeContract(match || mockContractsState[0]);
+  }
+}
+
+/**
+ * Update contract properties
+ * PATCH /api/contracts/:contractId
+ */
+export async function updateContract(contractId, updates) {
+  try {
+    const res = await api.patch(`/contracts/${contractId}`, updates);
+    return normalizeContract(res.data?.contract || res.data?.data || res.data);
+  } catch (err) {
+    console.warn(`[contractService] updateContract(${contractId}) fallback:`, err.message);
+    return { id: contractId, ...updates };
+  }
+}
+
+/**
+ * List contract to marketplace for investor funding
+ * POST /api/contracts/:contractId/list
+ */
+export async function listContract(contractId) {
+  try {
+    const res = await api.post(`/contracts/${contractId}/list`);
+    return normalizeContract(res.data?.contract || res.data?.data || res.data);
+  } catch (err) {
+    console.warn(`[contractService] listContract(${contractId}) fallback:`, err.message);
+    return { id: contractId, status: 'LISTED' };
+  }
+}
+
+/**
+ * Fund contract (convenience delegation)
  */
 export async function fundContract(id, amount) {
   try {
-    const res = await api.post(`/contracts/${id}/fund`, { amount });
-    return res.data?.contract || res.data;
+    const res = await api.post(`/contracts/${id}/fund`, {
+      amount,
+      amount_committed: amount,
+    });
+    return normalizeContract(res.data?.contract || res.data?.data || res.data);
   } catch (err) {
-    console.warn(`[contractService] fundContract(${id}, ${amount}) falling back to mock:`, err.message);
+    console.warn(`[contractService] fundContract(${id}) fallback:`, err.message);
     const amt = Number(amount) || 0;
-    let updatedContract = null;
-
     mockContractsState = mockContractsState.map((c) => {
-      const match =
-        c.id.toLowerCase() === String(id).toLowerCase() ||
-        c.id.replace(/^cf-/, '') === String(id).replace(/^cf-/, '');
-      if (match) {
+      if (c.id === id) {
         const newFunded = Math.min(c.targetPrincipal, c.fundedAmount + amt);
-        updatedContract = {
+        return {
           ...c,
           fundedAmount: newFunded,
-          investorCount: c.investorCount + 1,
-          status: newFunded >= c.targetPrincipal ? 'FUNDED' : 'LISTED'
+          investorCount: (c.investorCount || 0) + 1,
+          status: newFunded >= c.targetPrincipal ? 'FUNDED' : c.status,
         };
-        return updatedContract;
       }
       return c;
     });
-
-    return updatedContract || { id, fundedAmount: amt, success: true };
+    return { id, fundedAmount: amt, success: true };
   }
 }
 
 export default {
   MOCK_CONTRACTS,
+  createContract,
+  getContracts,
   fetchContracts,
   fetchContractById,
-  createContract,
-  fundContract
+  updateContract,
+  listContract,
+  fundContract,
 };

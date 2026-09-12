@@ -1,23 +1,38 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { sendOtp, verifyOtp, registerMerchant, logoutUser } from '../services/authService';
+import { useNavigate } from 'react-router-dom';
+import {
+  sendOtp as apiSendOtp,
+  verifyOtp as apiVerifyOtp,
+  login as apiLogin,
+  registerMerchant,
+  registerInvestor,
+  getCurrentUser,
+  logoutUser,
+} from '../services/authService';
+import { warmupBackend } from '../services/api';
 
 const AuthContext = createContext(null);
 
 const STORAGE_KEYS = {
+  TOKEN: 'token',
+  USER: 'user',
   ROLE: 'creditflow_role',
   BALANCE: 'creditflow_liquid_balance',
   CONTRACT_ID: 'creditflow_contract_id',
   SESSION: 'fairfuture_session',
-  USER: 'creditflow_user'
+  LEGACY_USER: 'creditflow_user',
 };
 
 const DEFAULT_INVESTOR_USER = {
-  name: 'A. Mehta',
+  name: 'Ananya Mehta',
+  email: 'ananya.mehta@syndicate.capital',
   phone: '9876543210',
   role: 'investor',
   title: 'Accredited LP',
-  initials: 'AM'
+  investorType: 'Accredited LP / Angel',
+  investorId: 'INV-DEMO01',
+  payoutRef: 'lp-sandbox@okaxis',
+  initials: 'AM',
 };
 
 const DEFAULT_MERCHANT_USER = {
@@ -29,7 +44,7 @@ const DEFAULT_MERCHANT_USER = {
   role: 'merchant',
   merchantId: 'MCH-DEMO01',
   contractId: 'CON-001',
-  initials: 'SG'
+  initials: 'SG',
 };
 
 const DEFAULT_LIQUID_BALANCE = 355000;
@@ -37,15 +52,26 @@ const DEFAULT_CONTRACT_ID = 'CON-001';
 
 export function AuthProvider({ children }) {
   let navigate = null;
-  let location = null;
   try {
     navigate = useNavigate();
-    location = useLocation();
   } catch {
-    // Router context not ready yet
+    // Router context not mounted yet
   }
 
-  // Persistent Role (default: 'investor')
+  // 1. Persistent Token State
+  const [token, setToken] = useState(() => {
+    try {
+      return (
+        localStorage.getItem(STORAGE_KEYS.TOKEN) ||
+        localStorage.getItem('fairfuture_token') ||
+        null
+      );
+    } catch {
+      return null;
+    }
+  });
+
+  // 2. Persistent Role State (default: 'investor')
   const [role, setRole] = useState(() => {
     try {
       return localStorage.getItem(STORAGE_KEYS.ROLE) || 'investor';
@@ -54,7 +80,35 @@ export function AuthProvider({ children }) {
     }
   });
 
-  // Persistent Liquid Balance for simulated LP capital (default: 355,000)
+  // 3. Persistent User State
+  const [user, setUser] = useState(() => {
+    try {
+      const savedUser =
+        localStorage.getItem(STORAGE_KEYS.USER) ||
+        localStorage.getItem(STORAGE_KEYS.LEGACY_USER);
+      if (savedUser) return JSON.parse(savedUser);
+      const initialRole = localStorage.getItem(STORAGE_KEYS.ROLE) || 'investor';
+      return initialRole === 'merchant' ? DEFAULT_MERCHANT_USER : DEFAULT_INVESTOR_USER;
+    } catch {
+      return DEFAULT_INVESTOR_USER;
+    }
+  });
+
+  // 4. Authentication Status
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    try {
+      const savedToken = localStorage.getItem(STORAGE_KEYS.TOKEN);
+      return Boolean(savedToken) || true; // Default true for frictionless hackathon demonstration
+    } catch {
+      return true;
+    }
+  });
+
+  // 5. Loading & Error States
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  // 6. Persistent Liquid Balance for simulated LP capital
   const [liquidBalance, setLiquidBalance] = useState(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEYS.BALANCE);
@@ -64,7 +118,7 @@ export function AuthProvider({ children }) {
     }
   });
 
-  // Active Merchant Contract (default: 'CON-001')
+  // 7. Active Merchant Contract
   const [activeContractId, setActiveContractId] = useState(() => {
     try {
       return localStorage.getItem(STORAGE_KEYS.CONTRACT_ID) || DEFAULT_CONTRACT_ID;
@@ -72,24 +126,6 @@ export function AuthProvider({ children }) {
       return DEFAULT_CONTRACT_ID;
     }
   });
-
-  // Authentication Status (default true for frictionless hackathon demonstration)
-  const [isAuthenticated, setIsAuthenticated] = useState(true);
-
-  // Authenticated Profile Details
-  const [user, setUser] = useState(() => {
-    try {
-      const savedUser = localStorage.getItem(STORAGE_KEYS.USER);
-      if (savedUser) return JSON.parse(savedUser);
-      const initialRole = localStorage.getItem(STORAGE_KEYS.ROLE) || 'investor';
-      return initialRole === 'merchant' ? DEFAULT_MERCHANT_USER : DEFAULT_INVESTOR_USER;
-    } catch {
-      return DEFAULT_INVESTOR_USER;
-    }
-  });
-
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
 
   // Synchronize state changes to localStorage
   useEffect(() => {
@@ -99,56 +135,78 @@ export function AuthProvider({ children }) {
       localStorage.setItem(STORAGE_KEYS.CONTRACT_ID, activeContractId);
       if (user) {
         localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
+        localStorage.setItem(STORAGE_KEYS.LEGACY_USER, JSON.stringify(user));
+      }
+      if (token) {
+        localStorage.setItem(STORAGE_KEYS.TOKEN, token);
       }
     } catch (e) {
-      console.warn('[AuthContext] Could not persist state to localStorage', e);
+      console.warn('[AuthContext] Could not persist state to localStorage:', e);
     }
-  }, [role, liquidBalance, activeContractId, user]);
+  }, [role, liquidBalance, activeContractId, user, token]);
+
+  // ─── INITIALIZATION ON MOUNT ───────────────────────────────────────────────
+  const initializeAuth = useCallback(async () => {
+    // 1. Trigger non-blocking backend wakeup ping for Render free-tier
+    warmupBackend();
+
+    // 2. If token exists, verify via GET /api/users/me
+    const storedToken = localStorage.getItem(STORAGE_KEYS.TOKEN);
+    if (!storedToken) return;
+
+    try {
+      const remoteUser = await getCurrentUser();
+      if (remoteUser) {
+        setUser((prev) => ({
+          ...prev,
+          ...remoteUser,
+          role: (remoteUser.role || role).toLowerCase(),
+        }));
+        setIsAuthenticated(true);
+      }
+    } catch (err) {
+      // If verification fails (e.g. 401 or offline), fallback gracefully to local session
+      console.info('[AuthContext] Stored session preserved in offline/demo mode.');
+    }
+  }, [role]);
+
+  useEffect(() => {
+    initializeAuth();
+  }, [initializeAuth]);
 
   const clearError = useCallback(() => setError(null), []);
 
   /**
-   * Adjusts investor liquid funds upon simulated capital allocation or returns
+   * Adjusts investor liquid funds upon capital allocation or returns
    */
   const updateBalance = useCallback((amount, isAbsolute = false) => {
     setLiquidBalance((prev) => {
       const next = isAbsolute ? Number(amount) : prev + Number(amount);
       try {
         localStorage.setItem(STORAGE_KEYS.BALANCE, String(next));
-      } catch {
-        // ignore
-      }
+      } catch {}
       return next;
     });
   }, []);
 
   /**
-   * Toggles active persona and programmatically updates current route
+   * Toggles active persona and updates current route
    * - Switching to 'merchant' -> /merchant/dashboard
    * - Switching to 'investor' -> /investor/marketplace
    */
-  const switchRole = useCallback(
+  const switchRoleDemo = useCallback(
     (newRole) => {
       const targetRole = newRole === 'merchant' ? 'merchant' : 'investor';
       setRole(targetRole);
 
-      // Update persona profile
       if (targetRole === 'merchant') {
         const merchantProfile = {
           ...DEFAULT_MERCHANT_USER,
-          contractId: activeContractId
+          contractId: activeContractId,
         };
         setUser(merchantProfile);
-        try {
-          localStorage.setItem(STORAGE_KEYS.ROLE, 'merchant');
-          localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(merchantProfile));
-        } catch {}
       } else {
         setUser(DEFAULT_INVESTOR_USER);
-        try {
-          localStorage.setItem(STORAGE_KEYS.ROLE, 'investor');
-          localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(DEFAULT_INVESTOR_USER));
-        } catch {}
       }
 
       const targetPath = targetRole === 'merchant' ? '/merchant/dashboard' : '/investor/marketplace';
@@ -162,9 +220,93 @@ export function AuthProvider({ children }) {
     [activeContractId, navigate]
   );
 
+  const switchRole = switchRoleDemo;
+
   /**
-   * Login action with phone and role
+   * Login with phone: initiates auth or sends OTP
    */
+  const loginWithPhone = useCallback(
+    async (phone) => {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await apiSendOtp(phone);
+        return res;
+      } catch (err) {
+        setError(err.message);
+        throw err;
+      } finally {
+        setLoading(false);
+      }
+    },
+    []
+  );
+
+  /**
+   * Confirm OTP, save token and user, update context
+   */
+  const confirmOtp = useCallback(
+    async (phone, otp) => {
+      setLoading(true);
+      setError(null);
+      try {
+        const result = await apiVerifyOtp({ phone, otp });
+        const receivedToken = result.token || btoa(`fairfuture:${phone}:${Date.now()}`);
+
+        setToken(receivedToken);
+        setIsAuthenticated(true);
+
+        const activeUser = result.user || {
+          phone,
+          role,
+          name: role === 'merchant' ? 'Ramesh Sharma' : 'Ananya Mehta',
+        };
+
+        setUser(activeUser);
+
+        try {
+          localStorage.setItem(STORAGE_KEYS.TOKEN, receivedToken);
+          localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(activeUser));
+        } catch {}
+
+        return result;
+      } catch (err) {
+        setError(err.message);
+        throw err;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [role]
+  );
+
+  /**
+   * Logout user, clear state and navigate to /login
+   */
+  const logout = useCallback(async () => {
+    setLoading(true);
+    try {
+      await logoutUser();
+    } finally {
+      setIsAuthenticated(false);
+      setToken(null);
+      setUser(null);
+      try {
+        localStorage.removeItem(STORAGE_KEYS.TOKEN);
+        localStorage.removeItem(STORAGE_KEYS.USER);
+        localStorage.removeItem(STORAGE_KEYS.SESSION);
+        localStorage.removeItem('pending_user_id');
+      } catch {}
+      setLoading(false);
+      if (navigate) {
+        navigate('/login');
+      } else if (typeof window !== 'undefined') {
+        window.location.href = '/login';
+      }
+    }
+  }, [navigate]);
+
+  // Backward compatible login method
   const login = useCallback((phone, selectedRole = 'investor') => {
     setIsAuthenticated(true);
     const targetRole = selectedRole === 'merchant' ? 'merchant' : 'investor';
@@ -176,98 +318,88 @@ export function AuthProvider({ children }) {
         : { ...DEFAULT_INVESTOR_USER, phone };
 
     setUser(profile);
+    const mockToken = btoa(`fairfuture:${phone}:${Date.now()}`);
+    setToken(mockToken);
+
     try {
+      localStorage.setItem(STORAGE_KEYS.TOKEN, mockToken);
       localStorage.setItem(STORAGE_KEYS.ROLE, targetRole);
       localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(profile));
-      localStorage.setItem(
-        STORAGE_KEYS.SESSION,
-        JSON.stringify({ isAuthenticated: true, user: profile, role: targetRole })
-      );
     } catch {}
   }, []);
 
-  /**
-   * Logout action
-   */
-  const logout = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      await logoutUser();
-    } finally {
-      setIsAuthenticated(false);
-      setUser(null);
+  const completeMerchantProfile = useCallback(
+    async (profileData) => {
+      setLoading(true);
+      setError(null);
       try {
-        localStorage.removeItem(STORAGE_KEYS.SESSION);
-        localStorage.removeItem(STORAGE_KEYS.USER);
-      } catch {}
-      setIsLoading(false);
-      if (navigate) {
-        navigate('/login');
+        const result = await registerMerchant({
+          phone: user?.phone || profileData.phone,
+          ...profileData,
+        });
+        const fullUser = {
+          name: profileData.stallName || 'Merchant Partner',
+          phone: result.profile?.phone || profileData.phone,
+          stallName: result.profile?.stallName || profileData.stallName,
+          shopAddress: result.profile?.shopAddress || profileData.shopAddress,
+          category: result.profile?.category || profileData.category,
+          role: 'merchant',
+          merchantId: result.merchantId || 'MCH-DEMO01',
+          contractId: result.profile?.contractId || 'CON-001',
+          initials: 'SG',
+        };
+        setUser(fullUser);
+        setRole('merchant');
+        setIsAuthenticated(true);
+        setActiveContractId(fullUser.contractId);
+        return result;
+      } catch (err) {
+        setError(err.message);
+        throw err;
+      } finally {
+        setLoading(false);
       }
-    }
-  }, [navigate]);
+    },
+    [user]
+  );
 
-  // Backward compatible OTP methods for existing onboarding pages
-  const sendOtpToPhone = useCallback(async (phone) => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const result = await sendOtp(phone);
-      return result;
-    } catch (err) {
-      setError(err.message);
-      throw err;
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  const verifyUserOtp = useCallback(async (phone, code) => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const result = await verifyOtp(phone, code);
-      setIsAuthenticated(true);
-      return result;
-    } catch (err) {
-      setError(err.message);
-      throw err;
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  const completeMerchantProfile = useCallback(async (profileData) => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const result = await registerMerchant({
-        phone: user?.phone || profileData.phone,
-        ...profileData
-      });
-      const fullUser = {
-        name: profileData.stallName || 'Merchant Partner',
-        phone: result.profile.phone,
-        stallName: result.profile.stallName,
-        shopAddress: result.profile.shopAddress,
-        category: result.profile.category,
-        role: 'merchant',
-        merchantId: result.merchantId,
-        contractId: result.profile.contractId || 'CON-001',
-        initials: 'SG'
-      };
-      setUser(fullUser);
-      setRole('merchant');
-      setIsAuthenticated(true);
-      setActiveContractId(fullUser.contractId);
-      return result;
-    } catch (err) {
-      setError(err.message);
-      throw err;
-    } finally {
-      setIsLoading(false);
-    }
-  }, [user]);
+  const completeInvestorProfile = useCallback(
+    async (profileData) => {
+      setLoading(true);
+      setError(null);
+      try {
+        const result = await registerInvestor({
+          phone: user?.phone || profileData.phone,
+          ...profileData,
+        });
+        const fullUser = {
+          name: result.profile?.name || profileData.name,
+          email: result.profile?.email || profileData.email,
+          phone: result.profile?.phone || profileData.phone,
+          role: 'investor',
+          investorType: result.profile?.investorType || profileData.investorType,
+          investorId: result.investorId || 'INV-DEMO01',
+          payoutRef: result.profile?.payoutRef || profileData.payoutRef,
+          allocationCommitment: result.profile?.allocationCommitment || profileData.allocationCommitment,
+          title: result.profile?.investorType || 'Accredited LP',
+          initials: 'AM',
+        };
+        setUser(fullUser);
+        setRole('investor');
+        setIsAuthenticated(true);
+        if (result.profile?.allocationCommitment) {
+          setLiquidBalance(result.profile.allocationCommitment);
+        }
+        return result;
+      } catch (err) {
+        setError(err.message);
+        throw err;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [user]
+  );
 
   const setDemoMerchant = useCallback(() => {
     setUser(DEFAULT_MERCHANT_USER);
@@ -276,24 +408,44 @@ export function AuthProvider({ children }) {
     setActiveContractId('CON-001');
   }, []);
 
+  const setDemoInvestor = useCallback(() => {
+    setUser(DEFAULT_INVESTOR_USER);
+    setRole('investor');
+    setIsAuthenticated(true);
+    setLiquidBalance(DEFAULT_LIQUID_BALANCE);
+  }, []);
+
   const value = {
-    role,
+    // Standard prompt state properties
     user,
+    token,
+    isAuthenticated,
+    role,
+    loading,
+    isLoading: loading, // alias
+
+    // Standard prompt methods
+    loginWithPhone,
+    confirmOtp,
+    logout,
+    switchRoleDemo,
+    initializeAuth,
+
+    // Backward compatible methods & properties
+    switchRole,
+    sendOtp: loginWithPhone,
+    verifyOtp: confirmOtp,
+    completeMerchantProfile,
+    completeInvestorProfile,
+    setDemoMerchant,
+    setDemoInvestor,
+    login,
+    updateBalance,
     liquidBalance,
     activeContractId,
-    isAuthenticated,
-    isLoading,
+    setActiveContractId,
     error,
-    switchRole,
-    updateBalance,
-    login,
-    logout,
     clearError,
-    sendOtp: sendOtpToPhone,
-    verifyOtp: verifyUserOtp,
-    completeMerchantProfile,
-    setDemoMerchant,
-    setActiveContractId
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

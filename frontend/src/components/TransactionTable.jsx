@@ -147,10 +147,10 @@ export default function TransactionTable({
   return (
     <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden font-sans">
       {/* Top Action Header */}
-      <div className="p-6 border-b border-[#E2E8F0] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="p-4 sm:p-6 border-b border-[#E2E8F0] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2">
-            <h3 className="text-lg font-extrabold text-[#0F172A] tracking-tight">{title}</h3>
+          <div className="flex items-center gap-2 flex-wrap">
+            <h3 className="text-base sm:text-lg font-extrabold text-[#0F172A] tracking-tight">{title}</h3>
             <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-blue-50 text-[#2563EB] border border-blue-200 font-bold tracking-wider">
               {isInvestorMode ? 'INVESTOR REVENUE STREAM' : 'ATOMIC 84/15/1 SPLIT'}
             </span>
@@ -160,22 +160,22 @@ export default function TransactionTable({
           )}
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="relative">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 w-full sm:w-auto">
+          <div className="relative flex-1 sm:flex-initial">
             <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               placeholder="Search reference or time..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="text-xs pl-8 pr-3 py-2 rounded-xl bg-slate-50 border border-[#E2E8F0] focus:outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-blue-500/20 w-48 sm:w-56 text-[#0F172A]"
+              className="text-xs pl-8 pr-3 py-2 rounded-xl bg-slate-50 border border-[#E2E8F0] focus:outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-blue-500/20 w-full sm:w-56 text-[#0F172A]"
             />
           </div>
 
           {allowExport && (
             <button
               onClick={exportCSV}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#0F172A] hover:bg-slate-800 text-white text-xs font-semibold shadow-sm transition-all cursor-pointer shrink-0"
+              className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#0F172A] hover:bg-slate-800 text-white text-xs font-semibold shadow-sm transition-all cursor-pointer shrink-0"
             >
               <Download className="w-3.5 h-3.5" />
               <span>Export Ledger (CSV)</span>
@@ -189,17 +189,17 @@ export default function TransactionTable({
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="border-b border-[#E2E8F0] bg-slate-50/70 text-[11px] font-mono font-bold text-[#64748B] uppercase tracking-wider">
-              <th className="py-3.5 px-4">Date / Time</th>
-              <th className="py-3.5 px-4">Payment Ref</th>
-              <th className="py-3.5 px-4 text-right">Gross Sale</th>
-              <th className={`py-3.5 px-4 text-right ${!isInvestorMode ? 'text-[#0F172A]' : ''}`}>
+              <th className="py-3 px-3 sm:py-3.5 sm:px-4">Date / Time</th>
+              <th className="py-3 px-3 sm:py-3.5 sm:px-4">Payment Ref</th>
+              <th className="py-3 px-3 sm:py-3.5 sm:px-4 text-right">Gross Sale</th>
+              <th className={`py-3 px-3 sm:py-3.5 sm:px-4 text-right ${!isInvestorMode ? 'text-[#0F172A]' : ''}`}>
                 Merchant Payout (84%)
               </th>
-              <th className={`py-3.5 px-4 text-right ${isInvestorMode ? 'text-[#2563EB]' : ''}`}>
+              <th className={`py-3 px-3 sm:py-3.5 sm:px-4 text-right ${isInvestorMode ? 'text-[#2563EB]' : ''}`}>
                 Investor Split (15%)
               </th>
-              <th className="py-3.5 px-4 text-right">Platform Fee (1%)</th>
-              <th className="py-3.5 px-4 text-center">Status</th>
+              <th className="py-3 px-3 sm:py-3.5 sm:px-4 text-right">Platform Fee (1%)</th>
+              <th className="py-3 px-3 sm:py-3.5 sm:px-4 text-center">Status</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 text-xs">

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
@@ -8,7 +8,9 @@ import {
   Loader2,
   Sparkles,
   Info,
-  Globe
+  Globe,
+  Store,
+  Wallet
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -16,12 +18,12 @@ import { useAuth } from '../context/AuthContext';
 const PHASES = [
   { id: 1, label: 'PHONE LOGIN', active: true },
   { id: 2, label: 'OTP VERIFICATION', active: false },
-  { id: 3, label: 'PROFILE ONBOARDING', active: false },
+  { id: 3, label: 'PROFILE SETUP', active: false },
 ];
 
 function PhaseStepper({ currentPhase = 1 }) {
   return (
-    <div className="flex items-center gap-0 text-[11px] font-mono font-bold overflow-x-auto pb-1">
+    <div className="flex items-center gap-0 text-[11px] font-mono font-bold overflow-x-auto pb-1 no-scrollbar">
       {PHASES.map((phase, idx) => {
         const isActive = phase.id === currentPhase;
         const isDone = phase.id < currentPhase;
@@ -44,7 +46,7 @@ function PhaseStepper({ currentPhase = 1 }) {
               <span>PHASE {phase.id === 1 ? 'A' : phase.id === 2 ? 'B' : 'C'}: {phase.label}</span>
             </div>
             {idx < PHASES.length - 1 && (
-              <div className={`h-px w-4 shrink-0 ${isDone || isActive ? 'bg-blue-300' : 'bg-slate-200'}`} />
+              <div className={`h-px w-3 sm:w-4 shrink-0 ${isDone || isActive ? 'bg-blue-300' : 'bg-slate-200'}`} />
             )}
           </React.Fragment>
         );
@@ -58,8 +60,17 @@ export default function Login() {
   const [searchParams] = useSearchParams();
   const { sendOtp, isLoading, error, clearError } = useAuth();
 
+  const initialRole = searchParams.get('role') === 'investor' ? 'investor' : 'merchant';
+  const [selectedRole, setSelectedRole] = useState(initialRole);
   const [phone, setPhone] = useState('');
   const [localError, setLocalError] = useState('');
+
+  useEffect(() => {
+    const r = searchParams.get('role');
+    if (r === 'investor' || r === 'merchant') {
+      setSelectedRole(r);
+    }
+  }, [searchParams]);
 
   // Format phone input — only digits, max 10
   const handlePhoneChange = (e) => {
@@ -82,7 +93,7 @@ export default function Login() {
     }
     try {
       await sendOtp(phone);
-      navigate(`/verify-otp?phone=${phone}`);
+      navigate(`/verify-otp?phone=${phone}&role=${selectedRole}`);
     } catch (err) {
       // error already set in context
     }
@@ -91,7 +102,7 @@ export default function Login() {
   const errorMsg = localError || error;
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen bg-[#F8FAFC] flex flex-col items-center justify-center p-4 py-8 font-sans">
       {/* Top Brand Bar */}
       <div className="mb-6 text-center">
         <Link to="/" className="inline-flex items-center gap-2.5 group">
@@ -129,16 +140,55 @@ export default function Login() {
         {/* Main Auth Card */}
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
           {/* Card Top Accent */}
-          <div className="h-1 bg-gradient-to-r from-[#2563EB] via-indigo-500 to-blue-400" />
+          <div className={`h-1.5 bg-gradient-to-r ${
+            selectedRole === 'investor'
+              ? 'from-[#2563EB] via-indigo-500 to-emerald-400'
+              : 'from-[#059669] via-emerald-500 to-teal-400'
+          }`} />
 
-          <div className="p-7">
+          <div className="p-5 sm:p-7">
+            {/* Persona Role Selection Tabs */}
+            <div className="mb-6">
+              <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">
+                Select Account Type / Persona
+              </label>
+              <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 rounded-xl border border-slate-200">
+                <button
+                  type="button"
+                  onClick={() => setSelectedRole('merchant')}
+                  className={`py-2 px-3 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                    selectedRole === 'merchant'
+                      ? 'bg-white text-[#0F172A] shadow-xs'
+                      : 'text-slate-500 hover:text-slate-800'
+                  }`}
+                >
+                  <Store className="w-3.5 h-3.5 text-[#059669]" />
+                  <span>Merchant (POS)</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedRole('investor')}
+                  className={`py-2 px-3 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                    selectedRole === 'investor'
+                      ? 'bg-[#2563EB] text-white shadow-xs'
+                      : 'text-slate-500 hover:text-slate-800'
+                  }`}
+                >
+                  <Wallet className="w-3.5 h-3.5" />
+                  <span>Investor (LP)</span>
+                </button>
+              </div>
+            </div>
+
             {/* Heading */}
             <div className="mb-6">
-              <h1 className="text-2xl font-extrabold font-display text-slate-900 tracking-tight">
-                Welcome to FairFuture
+              <h1 className="text-xl sm:text-2xl font-extrabold font-display text-slate-900 tracking-tight">
+                {selectedRole === 'investor' ? 'Investor Sign In & Onboarding' : 'Merchant Sign In & Onboarding'}
               </h1>
-              <p className="text-sm text-slate-500 mt-1">
-                Enter your phone to sign in or register instantly.
+              <p className="text-xs sm:text-sm text-slate-500 mt-1">
+                {selectedRole === 'investor'
+                  ? 'Enter phone to access the LP investment marketplace and deploy capital.'
+                  : 'Enter phone to register your shop and activate automatic split POS terminal.'}
               </p>
             </div>
 
@@ -150,7 +200,7 @@ export default function Login() {
                 </label>
                 <div className="flex rounded-xl border-2 border-slate-200 focus-within:border-[#2563EB] focus-within:ring-4 focus-within:ring-blue-100 overflow-hidden transition-all bg-white">
                   {/* Country Code Pill */}
-                  <div className="flex items-center gap-2 px-3.5 py-3 bg-slate-50 border-r border-slate-200 text-sm font-semibold text-slate-700 shrink-0">
+                  <div className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-3.5 py-3 bg-slate-50 border-r border-slate-200 text-sm font-semibold text-slate-700 shrink-0">
                     <Globe className="w-4 h-4 text-slate-400" />
                     <span className="font-mono">+91</span>
                     <span className="text-[10px] text-slate-400 hidden sm:inline">(India)</span>
@@ -165,7 +215,7 @@ export default function Login() {
                     placeholder="98765 43210"
                     autoFocus
                     maxLength={11} // 10 digits + 1 space
-                    className="flex-1 px-4 py-3 text-base font-mono font-semibold text-slate-900 bg-white focus:outline-none placeholder:text-slate-300 placeholder:font-normal"
+                    className="flex-1 px-3 sm:px-4 py-3 text-sm sm:text-base font-mono font-semibold text-slate-900 bg-white focus:outline-none placeholder:text-slate-300 placeholder:font-normal min-w-0"
                   />
                 </div>
 
@@ -185,7 +235,7 @@ export default function Login() {
               <button
                 type="submit"
                 disabled={isLoading || phone.length < 10}
-                className="w-full py-3.5 px-5 bg-[#2563EB] hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl text-sm font-bold shadow-md shadow-blue-500/20 transition-all flex items-center justify-center gap-2.5 active:scale-[0.99]"
+                className="w-full py-3.5 px-5 bg-[#2563EB] hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl text-sm font-bold shadow-md shadow-blue-500/20 transition-all flex items-center justify-center gap-2.5 active:scale-[0.99] cursor-pointer"
               >
                 {isLoading ? (
                   <>
@@ -218,12 +268,19 @@ export default function Login() {
           </div>
         </div>
 
-        <div className="mt-6 text-center text-xs text-slate-400">
-          <Link to="/playground" className="hover:text-blue-600 transition-colors font-medium">
-            Skip to Investor Marketplace →
+        <div className="mt-6 flex items-center justify-between text-xs text-slate-400 px-2">
+          <Link
+            to={selectedRole === 'investor' ? '/investor/onboarding' : '/merchant/onboarding'}
+            className="hover:text-blue-600 transition-colors font-medium"
+          >
+            Direct Onboarding Setup →
+          </Link>
+          <Link to="/investor/marketplace" className="hover:text-blue-600 transition-colors font-medium">
+            Explore Marketplace →
           </Link>
         </div>
       </motion.div>
     </div>
   );
 }
+

@@ -2,6 +2,14 @@ const prisma = require("../config/prisma");
 
 const createFunding = async (req, res) => {
   try {
+    // Only investors can fund contracts
+    if (req.user.role !== "investor") {
+        return res.status(403).json({
+            success: false,
+            message: "Only investors can fund contracts",
+        });
+    }
+
     const { contractId } = req.params;
     const { amount_committed } = req.body;
 

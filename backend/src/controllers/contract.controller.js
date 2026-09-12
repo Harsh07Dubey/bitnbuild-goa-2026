@@ -108,6 +108,40 @@ const createContract = async (req, res) => {
   }
 };
 
+const getContracts = async (req, res) => {
+  try {
+    const contracts = await prisma.contract.findMany({
+      orderBy: {
+        createdAt: "desc",
+      },
+      include: {
+        merchant: {
+          select: {
+            user_id: true,
+            name: true,
+            verified_flag: true,
+            trust_score: true,
+          },
+        },
+      },
+    });
+
+    return res.status(200).json({
+      success: true,
+      count: contracts.length,
+      contracts,
+    });
+  } catch (error) {
+    console.error("Get contracts error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch contracts",
+    });
+  }
+};
+
 module.exports = {
   createContract,
+  getContracts,
 };

@@ -5,6 +5,8 @@ import { Routes, Route, Navigate, useParams, useSearchParams } from 'react-route
 import Landing from './pages/Landing';
 import Login from './pages/Login';
 import OTPVerification from './pages/OTPVerification';
+import CreditFlowFAQ from './pages/CreditFlowFAQ';
+import TermsPage from './pages/TermsPage';
 
 // Investor Flow
 import InvestorLayout from './layouts/InvestorLayout';
@@ -59,6 +61,8 @@ export default function App() {
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
         <Route path="/verify-otp" element={<OTPVerification />} />
+        <Route path="/faq" element={<CreditFlowFAQ />} />
+        <Route path="/terms" element={<TermsPage />} />
 
         {/* Backward Compatibility Pass-Through Aliases */}
         <Route path="/playground" element={<PlaygroundPassThrough />} />

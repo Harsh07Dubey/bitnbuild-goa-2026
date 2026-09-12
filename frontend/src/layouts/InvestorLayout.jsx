@@ -6,10 +6,11 @@ import Navbar from '../components/Navbar';
 export default function InvestorLayout() {
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-[#0F172A] font-sans flex flex-col selection:bg-blue-600 selection:text-white">
-      {/* Top micro-status bar (Text removed) */}
+      {/* Top micro-status bar */}
       <div className="bg-[#0A0F1D] text-slate-400 px-4 sm:px-8 py-1.5 text-[11px] font-mono flex items-center justify-between border-b border-white/5">
         <div className="flex items-center gap-2">
           <span className="w-1.5 h-1.5 rounded-full bg-[#059669] animate-pulse" />
+          <span className="text-slate-200 font-bold tracking-wider">UMEED</span>
         </div>
         <div className="flex items-center gap-4 text-slate-400">
           <Link to="/merchant/dashboard" className="hover:text-blue-400 transition-colors flex items-center gap-1">
@@ -23,7 +24,7 @@ export default function InvestorLayout() {
         </div>
       </div>
 
-      {/* Main Persistent Navbar with UMEED Branding */}
+      {/* Main Persistent Navbar */}
       <Navbar activeRole="investor" brandTitle="UMEED" />
 
       {/* Main Content Area */}

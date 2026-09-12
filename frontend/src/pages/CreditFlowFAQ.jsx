@@ -1,16 +1,13 @@
 import React, { useState, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search,
   ChevronDown,
   HelpCircle,
   X,
-  Store,
-  Wallet,
-  Sparkles,
   MessageCircleQuestion,
-  ShieldCheck,
-  ArrowRight
+  ArrowLeft
 } from 'lucide-react';
 
 /**
@@ -170,8 +167,19 @@ export default function CreditFlowFAQ() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans py-12 sm:py-16 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans py-10 sm:py-14 px-4 sm:px-6 lg:px-8">
       <div className="max-w-3xl mx-auto">
+        {/* Navigation Bar */}
+        <div className="flex items-center justify-start gap-4 mb-8">
+          <Link
+            to="/"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-blue-600 bg-white border border-slate-200 px-3 py-1.5 rounded-lg shadow-2xs transition-colors"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Back to Home</span>
+          </Link>
+        </div>
+
         {/* ── 1. Header Section ── */}
         <div className="text-center mb-10 sm:mb-12">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-200/80 text-blue-600 text-xs font-semibold tracking-wide mb-4">
@@ -333,31 +341,6 @@ export default function CreditFlowFAQ() {
               </button>
             </div>
           )}
-        </div>
-
-        {/* ── 5. Still Have Questions Callout ── */}
-        <div className="mt-12 p-6 rounded-2xl bg-gradient-to-r from-blue-50/70 to-indigo-50/70 border border-blue-100 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-3 text-center sm:text-left">
-            <div className="p-3 bg-blue-600 text-white rounded-xl shadow-xs shrink-0 hidden sm:block">
-              <Sparkles className="w-5 h-5" />
-            </div>
-            <div>
-              <h4 className="text-sm font-bold text-slate-900">
-                Still have questions?
-              </h4>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Can’t find the answer you’re looking for? Reach out to our underwriting desk.
-              </p>
-            </div>
-          </div>
-
-          <a
-            href="mailto:support@creditflow.network"
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-xs transition-colors shrink-0 cursor-pointer"
-          >
-            <span>Contact Support</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </a>
         </div>
       </div>
     </div>

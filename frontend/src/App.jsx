@@ -23,6 +23,7 @@ import InvestorOnboarding from './pages/investor/InvestorOnboarding';
 // Payment Flow
 import PaymentSuccess from './pages/payment/PaymentSuccess';
 import PaymentFailed from './pages/payment/PaymentFailed';
+import PaymentCard from './components/PaymentCard';
 
 // Route Guards
 import ProtectedRoute from './components/ProtectedRoute';
@@ -69,6 +70,8 @@ export default function App() {
         </Route>
 
         {/* Customer Checkout / Payment Terminal States */}
+        <Route path="/pay" element={<PaymentCard isStandalone={true} />} />
+        <Route path="/pay/:contractId" element={<PaymentCard isStandalone={true} />} />
         <Route path="/payment/success" element={<PaymentSuccess />} />
         <Route path="/payment/failed" element={<PaymentFailed />} />
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -13,45 +13,47 @@ import {
   ArrowRight,
   Smartphone,
   Copy,
-  Check
+  Check,
+  PlayCircle,
+  Maximize2,
+  History,
+  Store,
+  Printer,
+  X
 } from 'lucide-react';
+import QRCodeCard from '../../components/QRCodeCard';
+import PaymentCard from '../../components/PaymentCard';
 import { formatCurrency } from '../../utils/formatCurrency';
+import { getRecentPayments } from '../../services/paymentService';
 
 export default function MerchantQR() {
-  const [amount, setAmount] = useState(500);
-  const [isSimulating, setIsSimulating] = useState(false);
-  const [paymentSuccess, setPaymentSuccess] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const [isSimulatorOpen, setIsSimulatorOpen] = useState(false);
+  const [isFullscreenOpen, setIsFullscreenOpen] = useState(false);
+  const [transactions, setTransactions] = useState([]);
 
-  // Dynamic split calculations (84% Merchant, 15% Investor, 1% Platform)
-  const merchantPayout = (amount * 0.84).toFixed(2);
-  const investorSplit = (amount * 0.15).toFixed(2);
-  const platformFee = (amount * 0.01).toFixed(2);
+  const merchantName = 'Sharma General Store';
+  const contractId = 'CON-001';
+  const payUrl = 'https://fairfuture.app/pay/CON-001';
 
-  const presets = [150, 250, 500, 1000, 2500];
+  // Load recent transactions
+  useEffect(() => {
+    setTransactions(getRecentPayments());
+  }, []);
 
-  const handleSimulatePayment = () => {
-    setIsSimulating(true);
-    setPaymentSuccess(false);
-
-    setTimeout(() => {
-      setIsSimulating(false);
-      setPaymentSuccess(true);
-      setTimeout(() => {
-        setPaymentSuccess(false);
-      }, 4000);
-    }, 1200);
+  // When payment simulator completes inside modal
+  const handlePaymentSuccess = (tx) => {
+    setIsSimulatorOpen(false);
+    // Prepend new transaction to recent list
+    setTransactions((prev) => [tx, ...prev]);
   };
 
-  const handleCopyUPI = () => {
-    navigator.clipboard.writeText(`sharma.general@creditflow?am=${amount}&cu=INR`);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  const handlePrintFullscreen = () => {
+    window.print();
   };
 
   return (
     <div className="space-y-8 pb-12">
-      {/* Header */}
+      {/* Breadcrumbs & Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 text-xs text-slate-500 font-mono mb-2">
@@ -64,15 +66,24 @@ export default function MerchantQR() {
             <span className="font-bold text-slate-800">Dynamic Split QR</span>
           </div>
 
-          <h1 className="text-3xl font-extrabold text-[#0F172A] tracking-tight">
-            Point-of-Sale Split QR Terminal
+          <h1 className="text-2xl md:text-3xl font-extrabold font-display text-slate-900 tracking-tight">
+            POS Payout Terminal • Split Active
           </h1>
-          <p className="text-sm text-[#64748B] mt-1">
+          <p className="text-sm text-slate-500 mt-1">
             Display this QR to customers at checkout. Each customer payment is programmatically divided in real-time.
           </p>
         </div>
 
         <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => setIsSimulatorOpen(true)}
+            className="py-2.5 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl text-xs font-bold shadow-md shadow-blue-500/20 flex items-center gap-2 transition-all active:scale-[0.98]"
+          >
+            <PlayCircle className="w-4 h-4" />
+            <span>Simulate Customer Payment</span>
+          </button>
+
           <Link
             to="/merchant/dashboard"
             className="px-4 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition-all shadow-xs"
@@ -82,184 +93,76 @@ export default function MerchantQR() {
         </div>
       </div>
 
+      {/* Merchant Identity Card */}
+      <div className="bg-white rounded-2xl border border-slate-200/80 p-5 md:p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-start gap-4">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center font-bold text-xl shadow-md shadow-blue-500/20 shrink-0">
+            <Store className="w-7 h-7" />
+          </div>
+
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h2 className="text-xl font-bold font-display text-slate-900">
+                {merchantName}
+              </h2>
+              <div className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-[#059669] text-xs font-semibold">
+                <ShieldCheck className="w-3.5 h-3.5" />
+                <span>Retail Verified</span>
+              </div>
+              <div className="px-2.5 py-0.5 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-xs font-mono font-bold">
+                ACTIVE {contractId}
+              </div>
+            </div>
+
+            <p className="text-xs text-slate-600 mt-1.5 max-w-2xl leading-relaxed">
+              Customers scan to pay. Funds automatically split 84% to you, 15% to contract repayment, and 1% platform fee.
+            </p>
+          </div>
+        </div>
+
+        {/* Quick Metrics Badge */}
+        <div className="flex items-center gap-4 border-t md:border-t-0 md:border-l border-slate-100 pt-3 md:pt-0 md:pl-6">
+          <div>
+            <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">
+              Settlement Mode
+            </span>
+            <span className="text-xs font-bold font-mono text-emerald-700 flex items-center gap-1 mt-0.5">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              Auto P2P Escrow
+            </span>
+          </div>
+          <div className="h-8 w-px bg-slate-200/80" />
+          <div>
+            <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">
+              Repayment Cap
+            </span>
+            <span className="text-xs font-bold font-mono text-slate-800 mt-0.5 block">
+              1.15x Target
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Grid: QR Terminal (Left) + Split Analytics & Settlement Feed (Right) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* ========================================================
             LEFT COLUMN: THE INTERACTIVE POS QR TERMINAL (6 COLS)
         ======================================================== */}
-        <div className="lg:col-span-6 bg-white rounded-2xl border border-[#E2E8F0] p-6 sm:p-8 shadow-sm space-y-6 text-center flex flex-col items-center">
-          <div className="flex items-center justify-between w-full pb-4 border-b border-slate-100">
-            <div className="flex items-center gap-2 text-left">
-              <div className="w-8 h-8 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center text-[#2563EB]">
-                <QrCode className="w-4 h-4" />
-              </div>
-              <div>
-                <span className="text-xs font-bold text-[#0F172A] block">Sharma General Store</span>
-                <span className="text-[10px] font-mono text-slate-400">POS TERMINAL ID: 0x9F8B...C41E</span>
-              </div>
-            </div>
-
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-[#059669] border border-emerald-200 text-xs font-semibold">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#059669] animate-pulse" />
-              <span>UPI LIVE</span>
-            </div>
-          </div>
-
-          {/* Amount Selector */}
-          <div className="w-full text-left">
-            <label className="text-xs font-bold uppercase tracking-wider text-[#0F172A] block mb-2">
-              Bill / Transaction Amount
-            </label>
-            <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xl font-bold text-slate-400">₹</span>
-              <input
-                type="number"
-                min={10}
-                step={10}
-                value={amount}
-                onChange={(e) => setAmount(Math.max(0, Number(e.target.value)))}
-                className="w-full pl-9 pr-4 py-3.5 bg-slate-50 border border-[#E2E8F0] rounded-xl text-2xl font-black text-[#0F172A] focus:outline-none focus:border-[#2563EB] text-center"
-              />
-            </div>
-
-            {/* Quick Amount Chips */}
-            <div className="flex gap-2 mt-3 flex-wrap justify-center">
-              {presets.map((amt) => (
-                <button
-                  key={amt}
-                  type="button"
-                  onClick={() => setAmount(amt)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-mono font-semibold transition-all cursor-pointer ${
-                    amount === amt
-                      ? 'bg-[#2563EB] text-white shadow-xs'
-                      : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
-                  }`}
-                >
-                  ₹{amt}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* QR Code Container */}
-          <div className="relative p-6 rounded-2xl bg-white border-2 border-slate-900 shadow-xl inline-block mt-2">
-            {/* SVG Stylized QR Code */}
-            <div className="w-56 h-56 bg-slate-950 p-3 rounded-xl relative flex items-center justify-center">
-              {/* QR Pattern Simulation */}
-              <svg viewBox="0 0 200 200" className="w-full h-full text-white fill-current">
-                {/* Corner Positioning Squares */}
-                <rect x="10" y="10" width="50" height="50" rx="6" fill="#2563EB" />
-                <rect x="20" y="20" width="30" height="30" rx="3" fill="#0A0F1D" />
-                <rect x="27" y="27" width="16" height="16" rx="2" fill="#FFFFFF" />
-
-                <rect x="140" y="10" width="50" height="50" rx="6" fill="#2563EB" />
-                <rect x="150" y="20" width="30" height="30" rx="3" fill="#0A0F1D" />
-                <rect x="157" y="27" width="16" height="16" rx="2" fill="#FFFFFF" />
-
-                <rect x="10" y="140" width="50" height="50" rx="6" fill="#2563EB" />
-                <rect x="20" y="150" width="30" height="30" rx="3" fill="#0A0F1D" />
-                <rect x="27" y="157" width="16" height="16" rx="2" fill="#FFFFFF" />
-
-                {/* Random Data Pattern Dots */}
-                <rect x="70" y="20" width="12" height="12" rx="2" />
-                <rect x="90" y="20" width="12" height="12" rx="2" />
-                <rect x="110" y="20" width="12" height="12" rx="2" />
-
-                <rect x="70" y="40" width="12" height="12" rx="2" />
-                <rect x="90" y="40" width="12" height="12" rx="2" />
-                <rect x="110" y="40" width="12" height="12" rx="2" />
-
-                <rect x="20" y="70" width="12" height="12" rx="2" />
-                <rect x="40" y="70" width="12" height="12" rx="2" />
-                <rect x="70" y="70" width="12" height="12" rx="2" />
-                <rect x="90" y="70" width="20" height="20" rx="4" fill="#059669" />
-                <rect x="120" y="70" width="12" height="12" rx="2" />
-                <rect x="140" y="70" width="12" height="12" rx="2" />
-                <rect x="170" y="70" width="12" height="12" rx="2" />
-
-                <rect x="20" y="90" width="12" height="12" rx="2" />
-                <rect x="40" y="90" width="12" height="12" rx="2" />
-                <rect x="70" y="100" width="12" height="12" rx="2" />
-                <rect x="120" y="100" width="12" height="12" rx="2" />
-                <rect x="150" y="100" width="12" height="12" rx="2" />
-                <rect x="170" y="100" width="12" height="12" rx="2" />
-
-                <rect x="70" y="130" width="12" height="12" rx="2" />
-                <rect x="90" y="130" width="12" height="12" rx="2" />
-                <rect x="110" y="130" width="12" height="12" rx="2" />
-                <rect x="130" y="130" width="12" height="12" rx="2" />
-                <rect x="150" y="130" width="12" height="12" rx="2" />
-                <rect x="170" y="130" width="12" height="12" rx="2" />
-
-                <rect x="70" y="160" width="12" height="12" rx="2" />
-                <rect x="100" y="160" width="12" height="12" rx="2" />
-                <rect x="130" y="160" width="12" height="12" rx="2" />
-                <rect x="160" y="160" width="12" height="12" rx="2" />
-              </svg>
-
-              {/* Center CreditFlow Badge */}
-              <div className="absolute inset-0 m-auto w-12 h-12 bg-white rounded-xl shadow-lg border-2 border-blue-600 flex items-center justify-center">
-                <span className="font-serif font-black text-blue-600 text-sm">CF</span>
-              </div>
-            </div>
-
-            <div className="mt-3 text-xs font-mono font-bold text-slate-800">
-              UPI // SCAN TO PAY ₹{amount}
-            </div>
-          </div>
-
-          {/* Copy UPI String Button */}
-          <button
-            onClick={handleCopyUPI}
-            className="text-xs text-slate-500 hover:text-slate-800 font-mono flex items-center gap-1.5 transition-colors cursor-pointer"
-          >
-            {copied ? <Check className="w-3.5 h-3.5 text-[#059669]" /> : <Copy className="w-3.5 h-3.5" />}
-            <span>{copied ? 'UPI Intent Copied!' : 'Copy UPI Intent String'}</span>
-          </button>
-
-          {/* Simulate Payment Trigger Button */}
-          <button
-            onClick={handleSimulatePayment}
-            disabled={isSimulating}
-            className="w-full py-4 px-6 rounded-xl bg-[#059669] hover:bg-emerald-700 text-white font-bold text-sm shadow-md shadow-emerald-600/20 transition-all flex items-center justify-center gap-2 cursor-pointer mt-2"
-          >
-            {isSimulating ? (
-              <>
-                <RefreshCw className="w-4 h-4 animate-spin" />
-                <span>Simulating Customer PhonePe Scan...</span>
-              </>
-            ) : (
-              <>
-                <Smartphone className="w-4 h-4" />
-                <span>Simulate Customer UPI Payment (₹{amount})</span>
-              </>
-            )}
-          </button>
-
-          {/* Payment Success Toast Banner */}
-          <AnimatePresence>
-            {paymentSuccess && (
-              <motion.div
-                initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                className="w-full p-4 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-900 text-xs font-semibold flex items-center gap-3"
-              >
-                <CheckCircle2 className="w-5 h-5 text-[#059669] shrink-0" />
-                <div className="text-left">
-                  <span className="block font-bold">Payment Verified & Split Settled!</span>
-                  <span>
-                    ₹{merchantPayout} routed to your bank • ₹{investorSplit} amortized to syndicate
-                  </span>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+        <div className="lg:col-span-6 space-y-6">
+          <QRCodeCard
+            contractId={contractId}
+            merchantName={merchantName}
+            payUrl={payUrl}
+            onSimulatePayment={() => setIsSimulatorOpen(true)}
+            onOpenFullscreen={() => setIsFullscreenOpen(true)}
+          />
         </div>
 
         {/* ========================================================
             RIGHT COLUMN: REAL-TIME SPLIT BREAKDOWN (6 COLS)
         ======================================================== */}
         <div className="lg:col-span-6 space-y-6">
+          {/* Protocol Routing Card */}
           <div className="bg-slate-900 text-white rounded-2xl p-6 sm:p-8 shadow-xl space-y-6">
             <div className="flex items-center justify-between pb-4 border-b border-white/10">
               <div>
@@ -283,8 +186,8 @@ export default function MerchantQR() {
                   <span className="text-xs font-mono text-blue-400 font-bold">LANE 01 // 84% MERCHANT CORE</span>
                   <Building2 className="w-4 h-4 text-blue-400" />
                 </div>
-                <div className="text-2xl font-black font-mono text-white">
-                  ₹{merchantPayout}
+                <div className="text-xl font-black font-mono text-white">
+                  84% of Gross Payment
                 </div>
                 <span className="text-xs text-slate-400 block">
                   Transferred directly into your primary merchant operational bank account.
@@ -297,8 +200,8 @@ export default function MerchantQR() {
                   <span className="text-xs font-mono text-emerald-400 font-bold">LANE 02 // 15% INVESTOR CAP</span>
                   <Coins className="w-4 h-4 text-emerald-400" />
                 </div>
-                <div className="text-2xl font-black font-mono text-emerald-400">
-                  ₹{investorSplit}
+                <div className="text-xl font-black font-mono text-emerald-400">
+                  15% of Gross Payment
                 </div>
                 <span className="text-xs text-slate-400 block">
                   Programmatic repayment credited towards CON-001 cap fulfillment.
@@ -311,8 +214,8 @@ export default function MerchantQR() {
                   <span className="text-xs font-mono text-purple-400 font-bold">LANE 03 // 1% CLEARING FEE</span>
                   <Zap className="w-4 h-4 text-purple-400" />
                 </div>
-                <div className="text-2xl font-black font-mono text-purple-300">
-                  ₹{platformFee}
+                <div className="text-xl font-black font-mono text-purple-300">
+                  1% of Gross Payment
                 </div>
                 <span className="text-xs text-slate-400 block">
                   Instant webhook processing and cryptographic consensus verification.
@@ -343,8 +246,169 @@ export default function MerchantQR() {
               <span className="text-slate-500">SHA256: 0x4f...91e</span>
             </div>
           </div>
+
+          {/* Live Settlement Activity Feed */}
+          <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm">
+            <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-700">
+                  <History className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900">
+                    Recent Terminal Settlements
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    Live verifiable split audit logs
+                  </p>
+                </div>
+              </div>
+
+              <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                Live Sync
+              </span>
+            </div>
+
+            {/* Transactions List */}
+            <div className="divide-y divide-slate-100 mt-2 max-h-72 overflow-y-auto">
+              {transactions.map((tx) => (
+                <div
+                  key={tx.reference}
+                  className="py-3 flex items-center justify-between gap-4 hover:bg-slate-50/60 -mx-2 px-2 rounded-xl transition-colors"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700 font-bold text-xs shrink-0 mt-0.5">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono font-bold text-xs text-slate-900">
+                          {tx.reference}
+                        </span>
+                        <span className="text-[10px] font-semibold text-slate-400 uppercase">
+                          {tx.paymentMethod}
+                        </span>
+                      </div>
+                      <div className="text-[11px] text-slate-500 mt-0.5 flex items-center gap-2">
+                        <span>{tx.formattedDate || 'Just now'}</span>
+                        <span>•</span>
+                        <span className="text-emerald-700 font-medium">
+                          +{formatCurrency(tx.split?.merchant || tx.amount * 0.84, true)} to you
+                        </span>
+                        <span>•</span>
+                        <span className="text-blue-700 font-medium">
+                          {formatCurrency(tx.split?.investor || tx.amount * 0.15, true)} pool
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="text-right shrink-0">
+                    <div className="text-sm font-bold font-mono text-slate-900">
+                      {formatCurrency(tx.amount, true)}
+                    </div>
+                    <span className="inline-block text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full mt-0.5">
+                      Split Sealed
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
+
+      {/* Fullscreen Acrylic Stand Counter Modal */}
+      <AnimatePresence>
+        {isFullscreenOpen && (
+          <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-8 text-center relative border border-slate-200"
+            >
+              {/* Close button */}
+              <button
+                type="button"
+                onClick={() => setIsFullscreenOpen(false)}
+                className="absolute top-4 right-4 p-2 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              {/* Physical Acrylic Counter Header */}
+              <div className="flex flex-col items-center">
+                <div className="px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-xs font-bold tracking-wider uppercase mb-2">
+                  Countertop Display Stand
+                </div>
+                <h3 className="text-2xl font-bold font-display text-slate-900">
+                  {merchantName}
+                </h3>
+                <p className="text-xs text-slate-500 mt-1">
+                  Accepted via any UPI App • Google Pay, PhonePe, Paytm, BHIM
+                </p>
+              </div>
+
+              {/* Enlarged Scannable QR Stand View */}
+              <div className="my-6 p-6 bg-slate-50 rounded-2xl border-2 border-slate-200 inline-block shadow-inner">
+                <QRCodeCard
+                  contractId={contractId}
+                  merchantName={merchantName}
+                  payUrl={payUrl}
+                  onSimulatePayment={() => {
+                    setIsFullscreenOpen(false);
+                    setIsSimulatorOpen(true);
+                  }}
+                  onOpenFullscreen={() => {}}
+                />
+              </div>
+
+              {/* Stand Footnote & Controls */}
+              <div className="flex items-center justify-center gap-3">
+                <button
+                  type="button"
+                  onClick={handlePrintFullscreen}
+                  className="py-2.5 px-5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl flex items-center gap-2 shadow transition-colors cursor-pointer"
+                >
+                  <Printer className="w-4 h-4" />
+                  <span>Print Stand for Counter</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsFullscreenOpen(false)}
+                  className="py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition-colors cursor-pointer"
+                >
+                  Close
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Customer Checkout Simulator Modal */}
+      <AnimatePresence>
+        {isSimulatorOpen && (
+          <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0, y: 10 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 10 }}
+              className="w-full max-w-md"
+            >
+              <PaymentCard
+                isStandalone={false}
+                contractId={contractId}
+                merchantName={merchantName}
+                onClose={() => setIsSimulatorOpen(false)}
+                onSuccess={handlePaymentSuccess}
+              />
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

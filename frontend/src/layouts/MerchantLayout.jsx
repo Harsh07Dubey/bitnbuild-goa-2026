@@ -10,7 +10,8 @@ import {
   ArrowUpRight,
   TrendingUp,
   Layers,
-  ChevronRight
+  ChevronRight,
+  ExternalLink
 } from 'lucide-react';
 
 export default function MerchantLayout() {
@@ -96,6 +97,18 @@ export default function MerchantLayout() {
 
           {/* Right Side Merchant Info */}
           <div className="flex items-center gap-3 sm:gap-4">
+            {/* Direct customer checkout link */}
+            <Link
+              to="/pay/CON-001"
+              target="_blank"
+              rel="noreferrer"
+              className="hidden lg:flex py-1.5 px-3 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50/50 items-center gap-1.5 transition-colors"
+              title="Test customer checkout view"
+            >
+              <span>Customer View</span>
+              <ExternalLink className="w-3 h-3" />
+            </Link>
+
             {/* Live Terminal Pill */}
             <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-xs font-semibold text-[#059669]">
               <span className="w-2 h-2 rounded-full bg-[#059669] animate-pulse" />

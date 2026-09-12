@@ -6,6 +6,7 @@ const userRoutes = require("./src/routes/user.routes");
 const contractRoutes = require("./src/routes/contract.routes");
 const fundingRoutes = require("./src/routes/funding.routes");
 const aiRoutes = require("./src/routes/ai.routes");
+const paymentRoutes = require("./src/routes/payment.routes");
 
 const app = express();
 
@@ -17,6 +18,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/contracts", contractRoutes);
 app.use("/api", fundingRoutes);
 app.use("/api/ai", aiRoutes);
+app.use("/api", paymentRoutes);
 
 app.get("/api/health", (req, res) => {
   res.json({

@@ -141,7 +141,57 @@ const getContracts = async (req, res) => {
   }
 };
 
+const getContractById = async (req, res) => {
+  try {
+    const { contractId } = req.params;
+
+    const contract = await prisma.contract.findUnique({
+      where: {
+        contract_id: contractId,
+      },
+      include: {
+        merchant: {
+          select: {
+            user_id: true,
+            name: true,
+            verified_flag: true,
+            trust_score: true,
+          },
+        },
+        fundings: {
+          select: {
+            funding_id: true,
+            investor_id: true,
+            amount_committed: true,
+            timestamp: true,
+          },
+        },
+      },
+    });
+
+    if (!contract) {
+      return res.status(404).json({
+        success: false,
+        message: "Contract not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      contract,
+    });
+  } catch (error) {
+    console.error("Get contract error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch contract",
+    });
+  }
+};
+
 module.exports = {
   createContract,
   getContracts,
+  getContractById,
 };

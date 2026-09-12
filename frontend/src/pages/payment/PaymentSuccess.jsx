@@ -12,7 +12,8 @@ import {
   Calendar,
   Hash,
   ExternalLink,
-  Printer
+  Printer,
+  CreditCard
 } from 'lucide-react';
 import { formatCurrency } from '../../utils/formatCurrency';
 import { calculateSplit, getPaymentDetails } from '../../services/paymentService';
@@ -140,6 +141,18 @@ export default function PaymentSuccess() {
               {ref}
             </span>
           </div>
+
+          {(stateTx?.gateway || (typeof ref === 'string' && ref.startsWith('pay_'))) && (
+            <div className="flex items-center justify-between">
+              <span className="text-slate-500 flex items-center gap-1.5">
+                <CreditCard className="w-3.5 h-3.5 text-slate-400" />
+                Gateway
+              </span>
+              <span className="text-[11px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100">
+                {stateTx?.gateway || 'Razorpay Test Mode'}
+              </span>
+            </div>
+          )}
 
           <div className="flex items-center justify-between">
             <span className="text-slate-500 flex items-center gap-1.5">

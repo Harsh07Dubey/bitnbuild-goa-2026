@@ -30,6 +30,7 @@ export default function MerchantQR() {
   const [isSimulatorOpen, setIsSimulatorOpen] = useState(false);
   const [isFullscreenOpen, setIsFullscreenOpen] = useState(false);
   const [transactions, setTransactions] = useState([]);
+  const [paymentNotice, setPaymentNotice] = useState(null);
 
   const merchantName = 'Sharma General Store';
   const contractId = 'CON-001';
@@ -45,6 +46,13 @@ export default function MerchantQR() {
     setIsSimulatorOpen(false);
     // Prepend new transaction to recent list
     setTransactions((prev) => [tx, ...prev]);
+    setPaymentNotice({
+      amount: tx.amount,
+      method: tx.paymentMethod || tx.method || 'Card Gateway / Razorpay',
+      reference: tx.reference,
+      merchantShare: tx.split?.merchant ?? (tx.amount * 0.84)
+    });
+    setTimeout(() => setPaymentNotice(null), 6000);
   };
 
   const handlePrintFullscreen = () => {
@@ -53,6 +61,39 @@ export default function MerchantQR() {
 
   return (
     <div className="space-y-8 pb-12">
+      {/* Live Payment Success Toast Banner */}
+      <AnimatePresence>
+        {paymentNotice && (
+          <motion.div
+            initial={{ opacity: 0, y: -16 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -16 }}
+            className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 shadow-sm flex items-center justify-between gap-3 text-emerald-950"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-xl bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-sm">
+                <CheckCircle2 className="w-4 h-4" />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-emerald-900">
+                  Payment Received: {formatCurrency(paymentNotice.amount, true)} via {paymentNotice.method}
+                </p>
+                <p className="text-[11px] text-emerald-700 font-mono mt-0.5">
+                  Ref: {paymentNotice.reference} • +{formatCurrency(paymentNotice.merchantShare, true)} credited directly to merchant pool
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setPaymentNotice(null)}
+              className="text-emerald-700 hover:text-emerald-900 p-1 rounded-lg hover:bg-emerald-100 transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Breadcrumbs & Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>

@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { formatCurrency } from '../utils/formatCurrency';
 import { calculateSplit, createPayment } from '../services/paymentService';
+import { openRazorpayCheckout } from '../services/razorpayService';
 
 const PRESET_AMOUNTS = [250, 500, 1200, 2500];
 
@@ -41,6 +42,7 @@ export default function PaymentCard({
   const [isAccordionOpen, setIsAccordionOpen] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
 
   // Live split calculation
   const split = useMemo(() => {
@@ -55,6 +57,7 @@ export default function PaymentCard({
     if (!isNaN(num) && num > 0) {
       setAmount(num);
       setError('');
+      setNotice('');
     } else if (val === '') {
       setAmount(0);
     }
@@ -65,6 +68,7 @@ export default function PaymentCard({
     setAmount(preset);
     setRawInput(preset.toString());
     setError('');
+    setNotice('');
   };
 
   // Handle payment execution
@@ -77,13 +81,49 @@ export default function PaymentCard({
 
     setIsProcessing(true);
     setError('');
+    setNotice('');
 
+    // Branch 1: Card Gateway / Razorpay Test-Mode Checkout
+    if (selectedMethod === 'card') {
+      try {
+        await openRazorpayCheckout({
+          amount,
+          contractId: activeContractId,
+          merchantName,
+          navigate,
+          onSuccess: (tx) => {
+            setIsProcessing(false);
+            if (onSuccess) {
+              onSuccess(tx);
+            } else {
+              navigate(`/payment/success?amount=${tx.amount}&ref=${tx.reference}&contract=${tx.contractId}`, {
+                state: { transaction: tx }
+              });
+            }
+          },
+          onFailure: (err) => {
+            setIsProcessing(false);
+            setError(err?.description || err?.message || 'Razorpay checkout encountered an issue.');
+          },
+          onDismiss: () => {
+            setIsProcessing(false);
+            setNotice('Razorpay checkout modal dismissed. No funds were debited.');
+          }
+        });
+      } catch (err) {
+        console.error('Razorpay checkout trigger error:', err);
+        setError('Failed to initiate Razorpay checkout. Please try again.');
+        setIsProcessing(false);
+      }
+      return;
+    }
+
+    // Branch 2: UPI Test Simulator (Instant Settlement Simulation)
     try {
-      const paymentMethodLabel = selectedMethod === 'upi' ? 'UPI Test Simulator' : 'Card Gateway / Razorpay';
       const tx = await createPayment({
         contractId: activeContractId,
         amount,
-        paymentMethod: paymentMethodLabel,
+        paymentMethod: 'UPI Test Simulator',
         merchantName
       });
 
@@ -171,9 +211,27 @@ export default function PaymentCard({
           </div>
 
           {error && (
-            <p className="mt-1.5 text-xs text-rose-600 font-medium">
-              {error}
-            </p>
+            <div className="mt-2 p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 font-medium flex items-center gap-2">
+              <Info className="w-4 h-4 text-rose-500 shrink-0" />
+              <span>{error}</span>
+            </div>
+          )}
+
+          {notice && (
+            <div className="mt-2 p-2.5 rounded-xl bg-blue-50 border border-blue-200 text-xs text-blue-800 font-medium flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <Info className="w-4 h-4 text-blue-600 shrink-0" />
+                <span>{notice}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setNotice('')}
+                className="text-blue-500 hover:text-blue-700 p-0.5 rounded cursor-pointer"
+                title="Dismiss notice"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
           )}
 
           {/* Quick-Pick Preset Chips */}
@@ -343,10 +401,13 @@ export default function PaymentCard({
                     Card Gateway / Razorpay
                   </div>
                   <div className="text-[11px] text-slate-500">
-                    Standard card checkout simulation
+                    Cards, UPI & Netbanking via Razorpay modal
                   </div>
                 </div>
               </div>
+              <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-indigo-100 text-indigo-800">
+                Live Test Mode
+              </span>
             </label>
           </div>
         </div>
@@ -357,16 +418,24 @@ export default function PaymentCard({
             type="button"
             onClick={handlePay}
             disabled={isProcessing || amount <= 0}
-            className="w-full py-3.5 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:opacity-60 disabled:cursor-not-allowed text-white rounded-xl text-sm font-bold shadow-md shadow-blue-500/25 hover:shadow-blue-500/35 transition-all flex items-center justify-center gap-2 active:scale-[0.99]"
+            className="w-full py-3.5 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:opacity-60 disabled:cursor-not-allowed text-white rounded-xl text-sm font-bold shadow-md shadow-blue-500/25 hover:shadow-blue-500/35 transition-all flex items-center justify-center gap-2 active:scale-[0.99] cursor-pointer"
           >
             {isProcessing ? (
               <div className="flex items-center gap-2.5">
                 <Loader2 className="w-4 h-4 animate-spin text-white" />
-                <span>Processing P2P split settlement...</span>
+                <span>
+                  {selectedMethod === 'card'
+                    ? 'Launching Razorpay modal...'
+                    : 'Processing P2P split settlement...'}
+                </span>
               </div>
             ) : (
               <div className="flex items-center gap-2">
-                <span>Pay {formatCurrency(split.gross, true)}</span>
+                <span>
+                  {selectedMethod === 'card'
+                    ? `Pay ${formatCurrency(split.gross, true)} via Razorpay`
+                    : `Pay ${formatCurrency(split.gross, true)} (UPI Simulator)`}
+                </span>
                 <ArrowRight className="w-4 h-4" />
               </div>
             )}

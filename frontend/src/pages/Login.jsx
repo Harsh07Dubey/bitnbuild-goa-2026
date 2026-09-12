@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
+  Phone,
   ShieldCheck,
   ArrowRight,
-  Phone,
+  Loader2,
   Sparkles,
-  CheckCircle2,
   Info,
   Globe,
   Store,
@@ -57,10 +57,8 @@ function PhaseStepper({ currentPhase = 1 }) {
 
 export default function Login() {
   const navigate = useNavigate();
-  const [step, setStep] = useState('phone'); // 'phone' | 'otp'
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [otp, setOtp] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [searchParams] = useSearchParams();
+  const { sendOtp, isLoading, error, clearError } = useAuth();
 
   const initialRole = searchParams.get('role') === 'investor' ? 'investor' : 'merchant';
   const [selectedRole, setSelectedRole] = useState(initialRole);
@@ -101,14 +99,7 @@ export default function Login() {
     }
   };
 
-  const handleVerifyOtp = (e) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      navigate('/playground');
-    }, 600);
-  };
+  const errorMsg = localError || error;
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] flex flex-col items-center justify-center p-4 py-8 font-sans">
@@ -118,37 +109,33 @@ export default function Login() {
           <div className="w-10 h-10 rounded-xl bg-[#2563EB] flex items-center justify-center text-white font-black text-sm shadow-md shadow-blue-500/20 group-hover:bg-blue-700 transition-colors">
             CF
           </div>
-          <div className="flex flex-col">
-            <span className="font-black text-2xl text-white tracking-tight">
-              Umeed <span className="text-xs font-mono font-normal text-slate-400">PROTOCOL</span>
+          <div className="flex flex-col text-left">
+            <span className="font-display font-extrabold text-lg text-slate-900 leading-none tracking-tight">
+              CREDIT<span className="text-[#2563EB]">FLOW</span>
             </span>
-            <span className="text-[10px] font-mono tracking-widest bg-gradient-to-r from-emerald-400 to-teal-300 bg-clip-text text-transparent font-bold uppercase">
-              Small Steps • Brighter Tomorrows
+            <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider">
+              FairFuture Protocol
             </span>
           </div>
         </Link>
-      </header>
+      </div>
 
-      {/* Main Authentication Flow Container */}
-      <main className="relative z-10 max-w-lg mx-auto w-full px-4 py-8 flex flex-col items-center">
-        {/* Hackathon / Demo Banner */}
-        <div className="w-full mb-6 p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 backdrop-blur-xl flex items-center justify-center gap-2 text-amber-300 text-xs font-mono font-bold tracking-wide shadow-[0_0_20px_rgba(245,158,11,0.15)]">
-          <Sparkles className="w-4 h-4 text-amber-400 animate-pulse" />
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        className="w-full max-w-md"
+      >
+        {/* Sandbox Callout Banner */}
+        <div className="mb-4 flex items-center gap-2 px-3 py-2 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-[11px] font-mono font-bold">
+          <Sparkles className="w-3.5 h-3.5 text-amber-600 shrink-0" />
           <span>DEMO SANDBOX FLOW • HACKATHON DEMONSTRATION MODE</span>
         </div>
 
-        {/* Phase Stepper Bar */}
-        <div className="w-full mb-8 p-1.5 rounded-2xl bg-slate-900/90 border border-white/10 backdrop-blur-xl flex items-center gap-2">
-          <div
-            className={`flex-1 py-2 px-3 rounded-xl text-xs font-mono font-bold flex items-center justify-center gap-2 transition-all ${
-              step === 'phone'
-                ? 'bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 shadow-[0_0_15px_rgba(16,185,129,0.4)]'
-                : 'text-slate-400 bg-slate-950/50'
-            }`}
-          >
-            <span className="w-4 h-4 rounded-full bg-slate-950/30 flex items-center justify-center text-[10px]">1</span>
-            <span>PHASE A: PHONE LOGIN</span>
-          </div>
+        {/* Phase Stepper */}
+        <div className="mb-4">
+          <PhaseStepper currentPhase={1} />
+        </div>
 
         {/* Main Auth Card */}
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">

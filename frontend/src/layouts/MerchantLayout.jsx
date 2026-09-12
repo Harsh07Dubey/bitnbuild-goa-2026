@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { NavLink, Link, Outlet, useLocation } from 'react-router-dom';
 import {
+  Store,
   LayoutDashboard,
   FilePlus2,
   FileText,
@@ -30,15 +31,11 @@ export default function MerchantLayout() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#030712] text-slate-100 font-sans flex flex-col selection:bg-emerald-400 selection:text-slate-950 overflow-x-hidden relative">
-      {/* High-Vibrance Ambient Glow Meshes */}
-      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[1200px] h-[500px] bg-gradient-to-tr from-emerald-500/15 via-teal-500/10 to-cyan-500/15 blur-[160px] rounded-full pointer-events-none -z-0" />
-      <div className="fixed inset-0 bg-[linear-gradient(to_right,#ffffff0a_1px,transparent_1px),linear-gradient(to_bottom,#ffffff0a_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_80%_65%_at_50%_0%,#000_70%,transparent_100%)] pointer-events-none -z-0" />
-
+    <div className="min-h-screen bg-[#F8FAFC] text-[#0F172A] font-sans flex flex-col selection:bg-blue-600 selection:text-white">
       {/* Top Header */}
-      <header className="sticky top-0 z-40 bg-slate-950/80 backdrop-blur-2xl border-b border-white/10 shadow-2xl">
+      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#E2E8F0]">
         {/* Micro status bar */}
-        <div className="bg-slate-950 text-slate-400 px-4 sm:px-8 py-1.5 text-[11px] font-mono flex items-center justify-between border-b border-white/10">
+        <div className="bg-[#0A0F1D] text-slate-400 px-4 sm:px-8 py-1.5 text-[11px] font-mono flex items-center justify-between border-b border-white/5">
           <div className="flex items-center gap-2">
             <span className="w-1.5 h-1.5 rounded-full bg-[#059669] animate-pulse" />
             <span className="text-slate-300 font-semibold truncate">FAIRFUTURE // MERCHANT OPERATING SYSTEM</span>
@@ -49,7 +46,7 @@ export default function MerchantLayout() {
               <span>Switch to Investor Terminal</span>
               <ArrowUpRight className="w-3 h-3" />
             </Link>
-            <span className="text-slate-700">•</span>
+            <span>•</span>
             <Link to="/" className="hover:text-white transition-colors">
               Landing Page
             </Link>
@@ -57,18 +54,18 @@ export default function MerchantLayout() {
         </div>
 
         {/* Main Navbar */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between">
           {/* Brand Logo & Nav Tabs */}
           <div className="flex items-center gap-6 lg:gap-10">
             <Link to="/merchant/dashboard" className="flex items-center gap-3 group select-none">
-              <div className="p-1.5 rounded-xl bg-gradient-to-br from-emerald-400 via-teal-500 to-cyan-500 border border-emerald-300/40 group-hover:scale-105 transition-transform shadow-[0_0_20px_rgba(16,185,129,0.3)]">
-                <img src={umeedLogo} alt="Umeed Logo" className="h-6 w-auto object-contain brightness-110" />
+              <div className="w-10 h-10 rounded-xl bg-[#2563EB] flex items-center justify-center text-white shadow-md shadow-blue-500/20 group-hover:bg-blue-700 transition-colors">
+                <Store className="w-5 h-5" />
               </div>
               <div className="flex flex-col">
-                <span className="font-black text-xl text-white tracking-tight flex items-center gap-1.5">
-                  Umeed
+                <span className="font-extrabold text-lg tracking-wider text-[#0F172A] leading-tight">
+                  CREDIT<span className="text-[#2563EB]">FLOW</span>
                 </span>
-                <span className="text-[9px] font-mono font-bold tracking-widest text-emerald-400 uppercase">
+                <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-500">
                   Merchant Suite
                 </span>
               </div>
@@ -90,12 +87,12 @@ export default function MerchantLayout() {
                       const active = directActive || isActive;
                       return `flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all relative ${
                         active
-                          ? 'text-emerald-300 bg-emerald-500/15 border border-emerald-400/30 shadow-[0_0_15px_rgba(16,185,129,0.2)]'
-                          : 'text-slate-400 hover:text-white hover:bg-slate-900/80 border border-transparent'
+                          ? 'text-[#2563EB] bg-blue-50/80 shadow-xs'
+                          : 'text-slate-600 hover:text-[#0F172A] hover:bg-slate-100/70'
                       }`;
                     }}
                   >
-                    <Icon className="w-4 h-4 text-emerald-400" />
+                    <Icon className="w-4 h-4" />
                     <span>{item.name}</span>
                   </NavLink>
                 );
@@ -110,20 +107,20 @@ export default function MerchantLayout() {
               to="/pay/CON-001"
               target="_blank"
               rel="noreferrer"
-              className="hidden lg:flex py-1.5 px-3 rounded-xl border border-slate-800 text-xs font-mono font-semibold text-slate-300 hover:text-emerald-400 hover:border-emerald-400/40 hover:bg-slate-900 items-center gap-1.5 transition-all"
+              className="hidden lg:flex py-1.5 px-3 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50/50 items-center gap-1.5 transition-colors"
               title="Test customer checkout view"
             >
               <span>Customer View</span>
-              <ExternalLink className="w-3 h-3 text-slate-400" />
+              <ExternalLink className="w-3 h-3" />
             </Link>
 
             {/* Live Terminal Pill */}
-            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-400/30 text-xs font-mono font-bold text-emerald-400">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-xs font-semibold text-[#059669]">
+              <span className="w-2 h-2 rounded-full bg-[#059669] animate-pulse" />
               <span>POS Connected</span>
             </div>
 
-            <div className="w-px h-6 bg-slate-800 hidden sm:block" aria-hidden="true" />
+            <div className="w-px h-6 bg-[#E2E8F0] hidden sm:block" aria-hidden="true" />
 
             {/* Merchant Profile Badge */}
             <div className="flex items-center gap-2.5 py-1 px-2 rounded-full hover:bg-slate-100 transition-colors cursor-pointer">
@@ -156,10 +153,8 @@ export default function MerchantLayout() {
               key={item.name}
               to={item.path}
               className={({ isActive }) =>
-                `text-xs font-mono whitespace-nowrap px-3 py-1.5 rounded-lg font-bold shrink-0 transition-all ${
-                  isActive
-                    ? 'bg-gradient-to-r from-emerald-400 to-teal-400 text-slate-950 shadow-md'
-                    : 'text-slate-300 bg-slate-900 border border-slate-800 hover:text-white'
+                `text-xs whitespace-nowrap px-3 py-1.5 rounded-lg font-medium shrink-0 ${
+                  isActive ? 'bg-[#2563EB] text-white font-semibold' : 'text-slate-600 bg-white border border-slate-200'
                 }`
               }
             >

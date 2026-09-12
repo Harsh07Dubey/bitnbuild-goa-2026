@@ -106,21 +106,6 @@ export default function Landing() {
             TOP MICRO-BAR / SYSTEM HEADER
         ======================================================== */}
         <header className="relative z-30 w-full border-b border-white/5 bg-[#0A0F1D]/80 backdrop-blur-md">
-          {/* Metadata Technical Row */}
-          <div className="border-b border-white/5 px-4 sm:px-8 py-2 flex items-center justify-between text-[11px] font-mono tracking-widest text-slate-400">
-            <div className="flex items-center gap-2">
-              <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#059669] animate-pulse" />
-              <span>CREDITFLOW PROTOCOL // PROGRAMMATIC REVENUE SPLIT // 2026 LIVE</span>
-            </div>
-            <div className="hidden md:flex items-center gap-6 text-slate-500">
-              <span>LATENCY: 14MS</span>
-              <span>•</span>
-              <span>ESCROW: VERIFIED</span>
-              <span>•</span>
-              <span className="text-[#059669]">CHAIN: SYNCHRONIZED</span>
-            </div>
-          </div>
-
           {/* Minimalist Logo & Navigation Row */}
           <div className="max-w-7xl mx-auto px-4 sm:px-8 py-4 flex items-center justify-between">
             <Link to="/" className="flex items-center gap-3 group">

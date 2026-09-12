@@ -114,7 +114,7 @@ export default function Landing() {
                 Split Architecture
               </a>
               <a href="#marketplace" className="hover:text-slate-900 transition-colors">
-                Marketplace
+                How It Works
               </a>
               <a href="#pillars" className="hover:text-slate-900 transition-colors">
                 Trust Framework
@@ -187,7 +187,7 @@ export default function Landing() {
               className="mt-8 sm:mt-10 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 w-full max-w-lg px-2"
             >
               <Link
-                to="/merchant/contract/create"
+                to="/merchant/onboarding"
                 className="w-full sm:w-auto text-center bg-[#059669] hover:bg-emerald-700 text-white font-semibold px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/35 hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-2 group cursor-pointer"
               >
                 <span>Merchant Entry</span>

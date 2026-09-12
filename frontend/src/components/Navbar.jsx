@@ -14,12 +14,7 @@ export default function Navbar({
   const location = useLocation();
   const navigate = useNavigate();
 
-  let auth = null;
-  try {
-    auth = useAuth();
-  } catch {
-    // Gracefully handle if context is not present
-  }
+  const auth = useAuth();
 
   // Active role determination: override prop > auth context role > local state fallback ('investor')
   const currentRole = overrideRole || auth?.role || 'investor';

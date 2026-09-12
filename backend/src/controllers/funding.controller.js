@@ -176,6 +176,13 @@ const getContractFundings = async (req, res) => {
 
 const getInvestorFundings = async (req, res) => {
   try {
+    if (req.user.user_id !== req.params.investorId) {
+        return res.status(403).json({
+            success: false,
+            message: "You can only view your own funding history",
+        });
+    }
+    
     const { investorId } = req.params;
 
     if (investorId !== req.user.user_id) {

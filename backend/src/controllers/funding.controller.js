@@ -119,6 +119,109 @@ const createFunding = async (req, res) => {
   }
 };
 
+const getContractFundings = async (req, res) => {
+  try {
+    const { contractId } = req.params;
+
+    const contract = await prisma.contract.findUnique({
+      where: {
+        contract_id: contractId,
+      },
+    });
+
+    if (!contract) {
+      return res.status(404).json({
+        success: false,
+        message: "Contract not found",
+      });
+    }
+
+    const fundings = await prisma.funding.findMany({
+      where: {
+        contract_id: contractId,
+      },
+      orderBy: {
+        timestamp: "desc",
+      },
+    });
+
+    const totalFunded = fundings.reduce(
+      (total, funding) => total + Number(funding.amount_committed),
+      0
+    );
+
+    return res.status(200).json({
+      success: true,
+      count: fundings.length,
+      total_funded: totalFunded,
+      fundings,
+    });
+  } catch (error) {
+    console.error("Get contract fundings error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch contract funding",
+    });
+  }
+};
+
+const getInvestorFundings = async (req, res) => {
+  try {
+    const { investorId } = req.params;
+
+    if (investorId !== req.user.user_id) {
+      return res.status(403).json({
+        success: false,
+        message: "You can only view your own funding history",
+      });
+    }
+
+    const fundings = await prisma.funding.findMany({
+      where: {
+        investor_id: investorId,
+      },
+      orderBy: {
+        timestamp: "desc",
+      },
+      include: {
+        contract: {
+          select: {
+            contract_id: true,
+            merchant_id: true,
+            principal: true,
+            share_pct: true,
+            cap_amount: true,
+            duration_days: true,
+            status: true,
+          },
+        },
+      },
+    });
+
+    const totalInvested = fundings.reduce(
+      (total, funding) => total + Number(funding.amount_committed),
+      0
+    );
+
+    return res.status(200).json({
+      success: true,
+      count: fundings.length,
+      total_invested: totalInvested,
+      fundings,
+    });
+  } catch (error) {
+    console.error("Get investor fundings error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch investor funding history",
+    });
+  }
+};
+
 module.exports = {
   createFunding,
+  getContractFundings,
+  getInvestorFundings,
 };

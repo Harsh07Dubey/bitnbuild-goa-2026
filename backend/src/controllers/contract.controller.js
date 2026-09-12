@@ -1,4 +1,7 @@
 const prisma = require("../config/prisma");
+const {
+  calculateBaselineTrustScore,
+} = require("../services/ai.service");
 
 const createContract = async (req, res) => {
   try {
@@ -10,6 +13,11 @@ const createContract = async (req, res) => {
       apr_equivalent,
       platform_fee_pct,
       weekly_minimum,
+
+      // AI inputs
+      business_age_months,
+      monthly_revenue,
+      previous_repayment_rate,
     } = req.body;
 
     if (
@@ -70,6 +78,41 @@ const createContract = async (req, res) => {
       });
     }
 
+    // --------------------------------------------------
+    // AI TRUST SCORE
+    // --------------------------------------------------
+
+    const aiResult = calculateBaselineTrustScore({
+      merchant_verified: req.user.verified_flag === true,
+      business_age_months:
+        business_age_months !== undefined
+          ? Number(business_age_months)
+          : 0,
+      monthly_revenue:
+        monthly_revenue !== undefined
+          ? Number(monthly_revenue)
+          : 0,
+      previous_repayment_rate:
+        previous_repayment_rate !== undefined
+          ? Number(previous_repayment_rate)
+          : 0,
+    });
+
+    // Save the latest AI trust score for the merchant
+    await prisma.user.update({
+      where: {
+        user_id: req.user.user_id,
+      },
+      data: {
+        trust_score: aiResult.trust_score,
+        ai_score_source: aiResult.score_source,
+      },
+    });
+
+    // --------------------------------------------------
+    // CREATE CONTRACT
+    // --------------------------------------------------
+
     const contract = await prisma.contract.create({
       data: {
         merchant_id: req.user.user_id,
@@ -78,18 +121,25 @@ const createContract = async (req, res) => {
         cap_amount: capAmount,
         duration_days: duration,
         status: "Draft",
+
         apr_equivalent:
           apr_equivalent !== undefined
             ? Number(apr_equivalent)
             : null,
+
         platform_fee_pct:
           platform_fee_pct !== undefined
             ? Number(platform_fee_pct)
             : null,
+
         weekly_minimum:
           weekly_minimum !== undefined
             ? Number(weekly_minimum)
             : null,
+
+        // AI recommendation
+        ai_recommended_cap: aiResult.max_contract_cap,
+        ai_risk_rationale: aiResult.risk_rationale,
       },
     });
 
@@ -97,6 +147,12 @@ const createContract = async (req, res) => {
       success: true,
       message: "Contract created successfully",
       contract,
+      ai: {
+        trust_score: aiResult.trust_score,
+        max_contract_cap: aiResult.max_contract_cap,
+        risk_rationale: aiResult.risk_rationale,
+        source: aiResult.score_source,
+      },
     });
   } catch (error) {
     console.error("Create contract error:", error);

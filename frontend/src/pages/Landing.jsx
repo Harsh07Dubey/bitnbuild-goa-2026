@@ -5,7 +5,6 @@ import {
   ShieldCheck,
   ArrowRight,
   QrCode,
-  Layers,
   TrendingUp,
   Lock,
   ArrowUpRight,
@@ -18,13 +17,8 @@ import {
   ChevronRight,
   Activity,
   BarChart3,
-  Globe2,
-  PieChart,
-  Store,
-  Wallet,
-  Check
+  Store
 } from 'lucide-react';
-import ContractCard from '../components/ContractCard';
 import umeedLogo from '../assets/umeed-logo.png';
 
 const containerVariants = {
@@ -41,9 +35,10 @@ export default function Landing() {
   const [selectedAmount, setSelectedAmount] = useState(500);
   const [isSimulating, setIsSimulating] = useState(false);
 
-  const merchantAmount = (selectedAmount * 0.84).toFixed(2);
-  const investorAmount = (selectedAmount * 0.15).toFixed(2);
-  const platformFee = (selectedAmount * 0.01).toFixed(2);
+  const numericAmount = Math.max(0, Number(selectedAmount) || 0);
+  const merchantAmount = (numericAmount * 0.84).toFixed(2);
+  const investorAmount = (numericAmount * 0.15).toFixed(2);
+  const platformFee = (numericAmount * 0.01).toFixed(2);
 
   const presetAmounts = [250, 500, 1000, 2500];
 
@@ -51,6 +46,13 @@ export default function Landing() {
     setSelectedAmount(amt);
     setIsSimulating(true);
     setTimeout(() => setIsSimulating(false), 600);
+  };
+
+  const handleInputChange = (e) => {
+    const val = e.target.value;
+    setSelectedAmount(val === '' ? '' : Number(val));
+    setIsSimulating(true);
+    setTimeout(() => setIsSimulating(false), 400);
   };
 
   return (
@@ -63,9 +65,7 @@ export default function Landing() {
       {/* Grid Texture */}
       <div className="fixed inset-0 bg-[linear-gradient(to_right,#ffffff0a_1px,transparent_1px),linear-gradient(to_bottom,#ffffff0a_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_80%_65%_at_50%_0%,#000_70%,transparent_100%)] pointer-events-none -z-0" />
 
-      {/* ========================================================
-          1. SYSTEM HEADER & NAVIGATION
-      ======================================================== */}
+      {/* Header */}
       <header className="relative z-30 max-w-7xl mx-auto px-4 sm:px-8 py-5 flex items-center justify-between border-b border-white/10 backdrop-blur-2xl bg-slate-950/70 sticky top-0 shadow-2xl">
         <Link to="/" className="flex items-center gap-3 group">
           <div className="relative p-1.5 rounded-xl bg-gradient-to-br from-emerald-400 via-teal-500 to-cyan-500 border border-emerald-300/40 group-hover:scale-105 transition-transform shadow-[0_0_20px_rgba(16,185,129,0.4)]">
@@ -106,11 +106,8 @@ export default function Landing() {
         </div>
       </header>
 
-      {/* ========================================================
-          2. HERO SECTION
-      ======================================================== */}
+      {/* Hero Section */}
       <section className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 pt-16 md:pt-20 pb-20 text-center flex flex-col items-center">
-        {/* Floating Social Proof / Live Badges */}
         <div className="absolute top-24 left-4 hidden xl:block animate-bounce" style={{ animationDuration: '6s' }}>
           <div className="p-3.5 rounded-2xl bg-slate-900/90 border border-emerald-400/40 backdrop-blur-2xl shadow-[0_0_30px_rgba(16,185,129,0.25)] flex items-center gap-3 max-w-xs">
             <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&h=120&q=80" alt="Merchant" className="w-10 h-10 rounded-xl object-cover border border-emerald-400" />
@@ -144,7 +141,6 @@ export default function Landing() {
           animate="visible"
           className="flex flex-col items-center"
         >
-          {/* Badge */}
           <motion.div variants={itemVariants} className="mb-6">
             <div className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full border border-emerald-400/40 bg-gradient-to-r from-emerald-500/20 via-teal-500/20 to-purple-500/20 backdrop-blur-xl text-emerald-300 text-xs font-mono font-bold uppercase tracking-widest shadow-[0_0_20px_rgba(16,185,129,0.3)]">
               <Sparkles className="w-4 h-4 text-amber-300 animate-spin" style={{ animationDuration: '5s' }} />
@@ -152,7 +148,6 @@ export default function Landing() {
             </div>
           </motion.div>
 
-          {/* Headline */}
           <motion.h1
             variants={itemVariants}
             className="font-black tracking-tight text-5xl sm:text-7xl md:text-8xl text-white leading-[1.05] max-w-5xl"
@@ -173,7 +168,6 @@ export default function Landing() {
             Zero predatory interest rates. Working capital funded directly by community investors and repaid programmatically via micro-splits on every customer POS transaction.
           </motion.p>
 
-          {/* CTA Buttons */}
           <motion.div
             variants={itemVariants}
             className="mt-9 flex flex-col sm:flex-row items-center justify-center gap-4 w-full max-w-md"
@@ -198,7 +192,7 @@ export default function Landing() {
           </motion.div>
         </motion.div>
 
-        {/* HERO VISUAL CENTERPIECE: Real-time Split Dashboard Preview */}
+        {/* Real-time Split Dashboard Preview */}
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
@@ -253,16 +247,12 @@ export default function Landing() {
         </motion.div>
       </section>
 
-      {/* ========================================================
-          3. INTERACTIVE 3-WAY SPLIT ARTIFACT
-      ======================================================== */}
+      {/* 3-Way Split Artifact */}
       <section id="artifact" className="relative z-20 max-w-6xl mx-auto px-4 sm:px-6 pb-28">
         <div className="relative rounded-3xl p-6 sm:p-10 bg-slate-900/95 border border-emerald-500/30 backdrop-blur-2xl shadow-[0_0_90px_rgba(16,185,129,0.15)] overflow-hidden">
-          {/* Neon inner glow */}
           <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-emerald-500/15 rounded-full blur-3xl pointer-events-none" />
           <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-blue-500/15 rounded-full blur-3xl pointer-events-none" />
 
-          {/* Header */}
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 pb-6 border-b border-white/10">
             <div>
               <div className="flex items-center gap-2">
@@ -282,31 +272,42 @@ export default function Landing() {
             </div>
           </div>
 
-          {/* Customer Scan Simulator */}
-          <div className="my-8 p-6 rounded-2xl bg-slate-950 border border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 shadow-inner">
+          <div className="my-8 p-6 rounded-2xl bg-slate-950 border border-slate-800 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 shadow-inner">
             <div className="flex items-center gap-5">
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-500 p-0.5 flex items-center justify-center shadow-[0_0_20px_rgba(16,185,129,0.4)]">
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-500 p-0.5 flex items-center justify-center shadow-[0_0_20px_rgba(16,185,129,0.4)] shrink-0">
                 <div className="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center text-emerald-400">
                   <QrCode className="w-7 h-7" />
                 </div>
               </div>
               <div>
                 <span className="text-xs font-mono text-slate-400 block uppercase tracking-wider font-semibold">CUSTOMER SCAN SIMULATOR</span>
-                <span className="text-2xl sm:text-3xl font-black text-white font-mono">
-                  Gross Counter Payment: <span className="text-emerald-400">₹{selectedAmount}.00</span>
-                </span>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="text-2xl sm:text-3xl font-black text-white font-mono">
+                    Gross Counter Payment: <span className="text-emerald-400">₹{numericAmount.toLocaleString('en-IN')}</span>
+                  </span>
+                </div>
               </div>
             </div>
 
-            <div className="flex items-center gap-3">
-              <span className="text-xs font-mono text-slate-400 hidden lg:inline font-semibold">Simulate Transaction:</span>
-              <div className="flex items-center gap-2">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full lg:w-auto">
+              <div className="flex items-center gap-2 bg-slate-900 px-3 py-1.5 rounded-xl border border-slate-700 w-full sm:w-auto">
+                <span className="text-xs font-mono text-slate-400 font-bold">₹</span>
+                <input
+                  type="number"
+                  value={selectedAmount}
+                  onChange={handleInputChange}
+                  placeholder="Custom"
+                  className="bg-transparent text-white font-mono font-bold text-sm outline-none w-24"
+                />
+              </div>
+
+              <div className="flex items-center gap-2 flex-wrap">
                 {presetAmounts.map((amt) => (
                   <button
                     key={amt}
                     onClick={() => triggerSimulation(amt)}
-                    className={`px-4 py-2 rounded-xl text-xs font-mono font-black transition-all ${
-                      selectedAmount === amt
+                    className={`px-3.5 py-2 rounded-xl text-xs font-mono font-black transition-all ${
+                      Number(selectedAmount) === amt
                         ? 'bg-gradient-to-r from-emerald-400 to-teal-300 text-slate-950 shadow-[0_0_20px_rgba(16,185,129,0.5)] scale-105'
                         : 'bg-slate-900 text-slate-300 border border-slate-700 hover:bg-slate-800 hover:text-white'
                     }`}
@@ -318,9 +319,7 @@ export default function Landing() {
             </div>
           </div>
 
-          {/* 3 Split Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 my-8">
-            {/* Lane 1 */}
             <div
               className={`p-6 rounded-2xl border transition-all duration-300 ${
                 isSimulating
@@ -345,7 +344,6 @@ export default function Landing() {
               </p>
             </div>
 
-            {/* Lane 2 */}
             <div
               className={`p-6 rounded-2xl border transition-all duration-300 ${
                 isSimulating
@@ -370,7 +368,6 @@ export default function Landing() {
               </p>
             </div>
 
-            {/* Lane 3 */}
             <div
               className={`p-6 rounded-2xl border transition-all duration-300 ${
                 isSimulating
@@ -396,7 +393,6 @@ export default function Landing() {
             </div>
           </div>
 
-          {/* Execution Bar */}
           <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 flex flex-col gap-3">
             <div className="flex items-center justify-between text-xs font-mono text-slate-400">
               <span className="flex items-center gap-2 font-bold text-slate-300">
@@ -414,9 +410,7 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ========================================================
-          4. LIVE MARKETPLACE PREVIEW WITH REAL IMAGES
-      ======================================================== */}
+      {/* Live Marketplace */}
       <section id="marketplace" className="relative bg-slate-950 text-white pt-24 pb-24 border-t border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-14">
@@ -443,7 +437,6 @@ export default function Landing() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Custom Enhanced Cards with Imagery */}
             <div className="rounded-3xl bg-slate-900/90 border border-slate-800 overflow-hidden hover:border-emerald-400/50 transition-all hover:shadow-[0_0_40px_rgba(16,185,129,0.2)] flex flex-col justify-between group">
               <div className="relative h-48 overflow-hidden">
                 <img
@@ -585,9 +578,7 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ========================================================
-          5. THE THREE PILLARS OF TRUST
-      ======================================================== */}
+      {/* Three Pillars */}
       <section id="pillars" className="relative bg-slate-950 border-t border-white/10 py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-16">
@@ -603,7 +594,6 @@ export default function Landing() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Pillar 1 */}
             <div className="p-8 rounded-3xl bg-slate-900/80 border border-white/10 hover:border-emerald-400/50 transition-all group backdrop-blur-xl flex flex-col justify-between hover:shadow-[0_0_50px_rgba(16,185,129,0.2)]">
               <div>
                 <div className="w-14 h-14 rounded-2xl bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center text-emerald-400 mb-6 group-hover:scale-110 transition-transform shadow-[0_0_20px_rgba(16,185,129,0.3)]">
@@ -626,7 +616,6 @@ export default function Landing() {
               </div>
             </div>
 
-            {/* Pillar 2 */}
             <div className="p-8 rounded-3xl bg-slate-900/80 border border-white/10 hover:border-cyan-400/50 transition-all group backdrop-blur-xl flex flex-col justify-between hover:shadow-[0_0_50px_rgba(6,182,212,0.2)]">
               <div>
                 <div className="w-14 h-14 rounded-2xl bg-cyan-500/20 border border-cyan-400/40 flex items-center justify-center text-cyan-400 mb-6 group-hover:scale-110 transition-transform shadow-[0_0_20px_rgba(6,182,212,0.3)]">
@@ -649,7 +638,6 @@ export default function Landing() {
               </div>
             </div>
 
-            {/* Pillar 3 */}
             <div className="p-8 rounded-3xl bg-slate-900/80 border border-white/10 hover:border-amber-400/50 transition-all group backdrop-blur-xl flex flex-col justify-between hover:shadow-[0_0_50px_rgba(245,158,11,0.2)]">
               <div>
                 <div className="w-14 h-14 rounded-2xl bg-amber-500/20 border border-amber-400/40 flex items-center justify-center text-amber-400 mb-6 group-hover:scale-110 transition-transform shadow-[0_0_20px_rgba(245,158,11,0.3)]">
@@ -675,9 +663,7 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ========================================================
-          6. PROTOCOL FOOTER
-      ======================================================== */}
+      {/* Footer */}
       <footer className="bg-slate-950 text-slate-400 border-t border-white/10 py-16 relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-10 pb-12 border-b border-slate-800">

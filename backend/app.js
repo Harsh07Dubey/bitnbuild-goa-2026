@@ -9,6 +9,7 @@ const aiRoutes = require("./src/routes/ai.routes");
 const paymentRoutes = require("./src/routes/payment.routes");
 const paymentWebhookRoutes = require("./src/routes/payment.webhook.routes");
 const transactionRoutes = require("./src/routes/transaction.routes");
+const dashboardRoutes = require("./src/routes/dashboard.routes");
 
 const app = express();
 
@@ -29,6 +30,7 @@ app.use("/api/ai", aiRoutes);
 app.use("/api", paymentRoutes);
 app.use("/api", paymentWebhookRoutes);
 app.use("/api", transactionRoutes);
+app.use("/api", dashboardRoutes);
 
 app.get("/api/health", (req, res) => {
   res.json({

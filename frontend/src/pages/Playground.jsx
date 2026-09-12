@@ -1,5 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import {
   TrendingUp,
   ShieldCheck,
@@ -12,6 +13,7 @@ import {
   Utensils,
   ShoppingBasket,
   ArrowUpRight,
+  ArrowLeft,
   PieChart,
   Wallet,
   Building2,
@@ -196,9 +198,42 @@ const INITIAL_CONTRACTS = [
   }
 ];
 
-export default function Playground() {
-  // Navigation active tab
-  const [activeTab, setActiveTab] = useState('Marketplace');
+export default function Playground({ defaultTab }) {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
+
+  // Navigation active tab with query param support
+  const tabParam = searchParams.get('tab')?.toLowerCase();
+  const initialTab =
+    tabParam === 'portfolio'
+      ? 'Portfolio'
+      : tabParam === 'analytics'
+      ? 'Analytics'
+      : tabParam === 'marketplace'
+      ? 'Marketplace'
+      : defaultTab || 'Marketplace';
+
+  const [activeTab, setActiveTab] = useState(initialTab);
+
+  // Sync tab with URL search params changes
+  useEffect(() => {
+    const currentTabParam = searchParams.get('tab')?.toLowerCase();
+    if (currentTabParam === 'portfolio' && activeTab !== 'Portfolio') {
+      setActiveTab('Portfolio');
+    } else if (currentTabParam === 'analytics' && activeTab !== 'Analytics') {
+      setActiveTab('Analytics');
+    } else if (currentTabParam === 'marketplace' && activeTab !== 'Marketplace') {
+      setActiveTab('Marketplace');
+    }
+  }, [searchParams]);
+
+  // Tab change handler that updates URL
+  const handleTabChange = (tabName) => {
+    setActiveTab(tabName);
+    const newParams = new URLSearchParams(searchParams);
+    newParams.set('tab', tabName.toLowerCase());
+    setSearchParams(newParams, { replace: true });
+  };
 
   // Filter & Sort States
   const [categoryFilter, setCategoryFilter] = useState('ALL');
@@ -322,8 +357,35 @@ export default function Playground() {
     // Update liquid balance
     setLiquidBalance((prev) => prev - amt);
     triggerToast(`Allocated ${formatCurrency(amt)} to ${selectedContract.merchantName}!`);
-    setSelectedContract(null);
+    handleCloseModal();
   };
+
+  // Close modal and clear contract/fund params from URL
+  const handleCloseModal = () => {
+    setSelectedContract(null);
+    if (searchParams.has('fund') || searchParams.has('contract')) {
+      const newParams = new URLSearchParams(searchParams);
+      newParams.delete('fund');
+      newParams.delete('contract');
+      setSearchParams(newParams, { replace: true });
+    }
+  };
+
+  // Auto-open modal when deep-linked with ?fund= or ?contract=
+  useEffect(() => {
+    const targetId = searchParams.get('fund') || searchParams.get('contract');
+    if (targetId) {
+      const match = contracts.find(
+        (c) =>
+          c.id.toLowerCase() === targetId.toLowerCase() ||
+          c.id.replace(/^cf-/, '') === targetId.replace(/^cf-/, '')
+      );
+      if (match) {
+        setSelectedContract(match);
+        setActiveTab('Marketplace');
+      }
+    }
+  }, [searchParams, contracts]);
 
   const triggerToast = (msg) => {
     setToastMessage(msg);
@@ -352,20 +414,38 @@ export default function Playground() {
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#E2E8F0]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between">
           {/* Brand/Logo & Nav Links */}
-          <div className="flex items-center gap-8 lg:gap-12">
-            <div className="flex items-center gap-3 cursor-pointer select-none" onClick={() => setActiveTab('Marketplace')}>
-              <div className="w-10 h-10 rounded-xl bg-[#2563EB] flex items-center justify-center text-white shadow-md shadow-blue-500/20">
+          <div className="flex items-center gap-6 lg:gap-10">
+            <Link
+              to="/"
+              className="flex items-center gap-3 cursor-pointer select-none group"
+              title="Return to Landing Page"
+            >
+              <div className="w-10 h-10 rounded-xl bg-[#2563EB] flex items-center justify-center text-white shadow-md shadow-blue-500/20 group-hover:bg-blue-700 transition-colors">
                 {/* Minimalist upward trendline glyph */}
                 <TrendingUp className="w-5 h-5 stroke-[2.5]" />
               </div>
-              <span className="font-extrabold text-lg tracking-wider text-[#0F172A]">CREDITFLOW</span>
-            </div>
+              <div className="flex items-center gap-2">
+                <span className="font-extrabold text-lg tracking-wider text-[#0F172A]">CREDITFLOW</span>
+                <span className="hidden sm:inline-block text-[10px] font-mono uppercase px-2 py-0.5 rounded-full bg-blue-50 text-[#2563EB] font-bold border border-blue-200">
+                  Playground
+                </span>
+              </div>
+            </Link>
+
+            {/* Back to Home Button */}
+            <Link
+              to="/"
+              className="hidden lg:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-600 hover:text-[#2563EB] hover:bg-blue-50/80 transition-all border border-slate-200/60 hover:border-blue-200"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>Landing Page</span>
+            </Link>
 
             {/* Navigation Links */}
-            <nav className="hidden md:flex items-center gap-2">
+            <nav className="hidden md:flex items-center gap-1.5">
               <button
-                onClick={() => setActiveTab('Marketplace')}
-                className={`px-4 py-2 rounded-xl text-sm font-semibold transition-colors relative ${
+                onClick={() => handleTabChange('Marketplace')}
+                className={`px-4 py-2 rounded-xl text-sm font-semibold transition-colors relative cursor-pointer ${
                   activeTab === 'Marketplace'
                     ? 'text-[#2563EB] bg-blue-50/80'
                     : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70'
@@ -378,8 +458,8 @@ export default function Playground() {
               </button>
 
               <button
-                onClick={() => setActiveTab('Portfolio')}
-                className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors relative ${
+                onClick={() => handleTabChange('Portfolio')}
+                className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors relative cursor-pointer ${
                   activeTab === 'Portfolio'
                     ? 'text-[#2563EB] bg-blue-50/80 font-semibold'
                     : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70'
@@ -392,8 +472,8 @@ export default function Playground() {
               </button>
 
               <button
-                onClick={() => setActiveTab('Analytics')}
-                className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors relative ${
+                onClick={() => handleTabChange('Analytics')}
+                className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors relative cursor-pointer ${
                   activeTab === 'Analytics'
                     ? 'text-[#2563EB] bg-blue-50/80 font-semibold'
                     : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70'
@@ -1064,7 +1144,7 @@ export default function Playground() {
                 </div>
 
                 <button
-                  onClick={() => setSelectedContract(null)}
+                  onClick={handleCloseModal}
                   className="p-1.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 transition-colors"
                 >
                   <X className="w-5 h-5" />
@@ -1155,7 +1235,7 @@ export default function Playground() {
               {/* Modal Buttons */}
               <div className="flex gap-3">
                 <button
-                  onClick={() => setSelectedContract(null)}
+                  onClick={handleCloseModal}
                   className="flex-1 py-3 px-4 rounded-xl bg-slate-100 text-slate-700 font-bold text-sm hover:bg-slate-200 transition-colors cursor-pointer"
                 >
                   Cancel

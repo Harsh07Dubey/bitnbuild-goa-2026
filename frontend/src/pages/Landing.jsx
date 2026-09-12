@@ -147,6 +147,15 @@ export default function Landing() {
               <a href="#pillars" className="hover:text-white transition-colors">
                 Trust Framework
               </a>
+              <Link
+                to="/playground"
+                className="inline-flex items-center gap-1.5 text-blue-400 hover:text-blue-300 transition-colors font-semibold"
+              >
+                <span>Playground</span>
+                <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-400/30">
+                  Live
+                </span>
+              </Link>
             </nav>
 
             <div className="flex items-center gap-3">
@@ -157,11 +166,11 @@ export default function Landing() {
                 Sign In
               </Link>
               <Link
-                to="/investor/marketplace"
-                className="text-xs font-medium bg-white/10 hover:bg-white/15 text-white px-4 py-2 rounded-lg border border-white/10 transition-all backdrop-blur-sm flex items-center gap-1.5"
+                to="/playground"
+                className="text-xs font-medium bg-[#2563EB]/90 hover:bg-[#2563EB] text-white px-4 py-2 rounded-lg border border-blue-400/30 transition-all shadow-sm shadow-blue-500/20 backdrop-blur-sm flex items-center gap-1.5"
               >
-                <span>Terminal</span>
-                <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+                <span>Launch Playground</span>
+                <ChevronRight className="w-3.5 h-3.5 text-blue-200" />
               </Link>
             </div>
           </div>
@@ -218,10 +227,10 @@ export default function Landing() {
               </Link>
 
               <Link
-                to="/investor/marketplace"
+                to="/playground"
                 className="w-full sm:w-auto text-center border border-white/20 bg-white/5 hover:bg-[#EFF6FF]/10 text-white font-medium px-8 py-4 rounded-xl backdrop-blur-sm transition-all duration-200 flex items-center justify-center gap-2"
               >
-                <span>Investor Entry</span>
+                <span>Investor Playground</span>
                 <ArrowUpRight className="w-4 h-4 text-slate-400" />
               </Link>
             </motion.div>
@@ -446,7 +455,7 @@ export default function Landing() {
             </div>
 
             <Link
-              to="/investor/marketplace"
+              to="/playground"
               className="inline-flex items-center gap-2 text-sm font-semibold text-[#2563EB] hover:text-blue-800 transition-colors group"
             >
               <span>View all live contracts</span>
@@ -458,7 +467,7 @@ export default function Landing() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Instance 1: Sharma General Store */}
             <ContractCard
-              id="1"
+              id="cf-101"
               businessName="Sharma General Store"
               category="Retail"
               status="LISTED"
@@ -474,7 +483,7 @@ export default function Landing() {
 
             {/* Instance 2: Fresh Bites Cafe */}
             <ContractCard
-              id="2"
+              id="cf-102"
               businessName="Fresh Bites Cafe"
               category="Food"
               status="LISTED"
@@ -488,20 +497,20 @@ export default function Landing() {
               investorCount={31}
             />
 
-            {/* Instance 3: Green Grocers Hub */}
+            {/* Instance 3: QuickMart Grocery Hub */}
             <ContractCard
-              id="3"
-              businessName="Green Grocers Hub"
+              id="cf-104"
+              businessName="QuickMart Grocery"
               category="Grocery"
               status="LISTED"
-              trustScore={68}
-              trustLabel="VERIFIED"
-              targetAmount="₹80,000"
-              fundedPercentage={40}
-              dailySplit="12% Gross"
-              repaymentCap="1.12x"
-              duration="60 Days"
-              investorCount={12}
+              trustScore={91}
+              trustLabel="HIGH TRUST"
+              targetAmount="₹4,00,000"
+              fundedPercentage={85}
+              dailySplit="10% Gross"
+              repaymentCap="1.18x"
+              duration="90 Days"
+              investorCount={29}
             />
           </div>
 
@@ -514,7 +523,7 @@ export default function Landing() {
               </span>
             </div>
             <Link
-              to="/investor/marketplace"
+              to="/playground"
               className="shrink-0 text-xs font-semibold px-4 py-2 rounded-lg bg-slate-900 text-white hover:bg-slate-800 transition-colors"
             >
               Explore All 28 Contracts
@@ -674,12 +683,18 @@ export default function Landing() {
               </h4>
               <ul className="space-y-2.5 text-sm">
                 <li>
-                  <Link to="/investor/marketplace" className="hover:text-white transition-colors">
+                  <Link to="/playground" className="hover:text-white transition-colors flex items-center gap-1.5 text-blue-400 font-medium">
+                    <span>Interactive Playground</span>
+                    <span className="text-[10px] font-mono px-1 rounded bg-blue-500/20 text-blue-300">LIVE</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/playground?tab=marketplace" className="hover:text-white transition-colors">
                     Contract Marketplace
                   </Link>
                 </li>
                 <li>
-                  <Link to="/investor/dashboard" className="hover:text-white transition-colors">
+                  <Link to="/playground?tab=portfolio" className="hover:text-white transition-colors">
                     Portfolio Analytics
                   </Link>
                 </li>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useParams } from 'react-router-dom';
 
 // Public & Auth Pages
 import Landing from './pages/Landing';
@@ -19,10 +19,6 @@ import InventoryCheckpoint from './pages/merchant/InventoryCheckpoint';
 // Investor Flow
 import InvestorLayout from './layouts/InvestorLayout';
 import InvestorOnboarding from './pages/investor/InvestorOnboarding';
-import Marketplace from './pages/investor/Marketplace';
-import InvestorContractDetails from './pages/investor/InvestorContractDetails';
-import FundContract from './pages/investor/FundContract';
-import InvestorDashboard from './pages/investor/InvestorDashboard';
 
 // Payment Flow
 import PaymentSuccess from './pages/payment/PaymentSuccess';
@@ -30,6 +26,12 @@ import PaymentFailed from './pages/payment/PaymentFailed';
 
 // Route Guards
 import ProtectedRoute from './components/ProtectedRoute';
+
+// Helper component for deep-linking fund/contract routes into Playground
+function InvestorContractRedirect() {
+  const { id } = useParams();
+  return <Navigate to={`/playground?fund=${id || ''}`} replace />;
+}
 
 export default function App() {
   return (
@@ -40,10 +42,12 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/verify-otp" element={<OTPVerification />} />
         <Route path="/playground" element={<Playground />} />
+        <Route path="/marketplace" element={<Navigate to="/playground" replace />} />
 
         {/* Merchant Routes */}
         <Route element={<ProtectedRoute />}>
           <Route path="/merchant" element={<MerchantLayout />}>
+            <Route index element={<Navigate to="dashboard" replace />} />
             <Route path="onboarding" element={<MerchantOnboarding />} />
             <Route path="dashboard" element={<MerchantDashboard />} />
             <Route path="contract/create" element={<CreateContract />} />
@@ -57,10 +61,10 @@ export default function App() {
         <Route element={<ProtectedRoute />}>
           <Route path="/investor" element={<InvestorLayout />}>
             <Route path="onboarding" element={<InvestorOnboarding />} />
-            <Route path="marketplace" element={<Marketplace />} />
-            <Route path="contract/:id" element={<InvestorContractDetails />} />
-            <Route path="fund/:id" element={<FundContract />} />
-            <Route path="dashboard" element={<InvestorDashboard />} />
+            <Route path="marketplace" element={<Navigate to="/playground" replace />} />
+            <Route path="contract/:id" element={<InvestorContractRedirect />} />
+            <Route path="fund/:id" element={<InvestorContractRedirect />} />
+            <Route path="dashboard" element={<Navigate to="/playground?tab=portfolio" replace />} />
           </Route>
         </Route>
 

@@ -57,15 +57,17 @@ export default function ContractCard({
         </div>
 
         {/* Business Title */}
-        <h3 className="text-xl font-semibold text-slate-900 tracking-tight group-hover:text-[#2563EB] transition-colors flex items-center justify-between">
-          <span>{businessName}</span>
-          <span className="opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 -translate-x-1 transition-all">
-            <ArrowUpRight className="w-4 h-4 text-[#2563EB]" />
-          </span>
-        </h3>
+        <Link to={`/playground?fund=${id}`} className="block">
+          <h3 className="text-xl font-semibold text-slate-900 tracking-tight group-hover:text-[#2563EB] transition-colors flex items-center justify-between">
+            <span>{businessName}</span>
+            <span className="opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 -translate-x-1 transition-all">
+              <ArrowUpRight className="w-4 h-4 text-[#2563EB]" />
+            </span>
+          </h3>
+        </Link>
 
         <p className="text-xs text-slate-500 mt-1 font-mono">
-          CONTRACT #{id.toString().padStart(4, '0')} // POINT-OF-SALE ROUTED
+          CONTRACT #{id.toString().replace(/^cf-/, '').padStart(4, '0')} // POINT-OF-SALE ROUTED
         </p>
 
         {/* Metrics Grid */}
@@ -109,7 +111,7 @@ export default function ContractCard({
           {investorCount} Backers Active
         </span>
         <Link
-          to={`/investor/fund/${id}`}
+          to={`/playground?fund=${id}`}
           className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 py-2 rounded-lg bg-[#EFF6FF] text-[#2563EB] hover:bg-[#2563EB] hover:text-white transition-colors duration-200"
         >
           <span>Fund Contract</span>

@@ -98,6 +98,15 @@ const createContract = async (req, res) => {
           : 0,
     });
 
+    // Enforce AI-recommended contract cap
+    if (capAmount > aiResult.max_contract_cap) {
+        return res.status(400).json({
+            success: false,
+            message: "Requested cap amount exceeds the AI-recommended contract cap",
+            max_contract_cap: aiResult.max_contract_cap,
+        });
+    }
+
     // Save the latest AI trust score for the merchant
     await prisma.user.update({
       where: {

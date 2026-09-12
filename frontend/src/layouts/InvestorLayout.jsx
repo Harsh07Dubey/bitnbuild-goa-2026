@@ -1,17 +1,15 @@
 import React from 'react';
 import { Outlet, Link } from 'react-router-dom';
-import { ArrowUpRight, TrendingUp, ShieldCheck } from 'lucide-react';
+import { ArrowUpRight, ShieldCheck } from 'lucide-react';
 import Navbar from '../components/Navbar';
 
 export default function InvestorLayout() {
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-[#0F172A] font-sans flex flex-col selection:bg-blue-600 selection:text-white">
-      {/* Top micro-status bar */}
+      {/* Top micro-status bar (Text removed) */}
       <div className="bg-[#0A0F1D] text-slate-400 px-4 sm:px-8 py-1.5 text-[11px] font-mono flex items-center justify-between border-b border-white/5">
         <div className="flex items-center gap-2">
           <span className="w-1.5 h-1.5 rounded-full bg-[#059669] animate-pulse" />
-          <span className="text-slate-300 font-semibold">FAIRFUTURE // INVESTOR LIQUIDITY PROTOCOL</span>
-          <span className="hidden md:inline text-slate-500">• AUTOMATED REVENUE SHARE ACTIVE</span>
         </div>
         <div className="flex items-center gap-4 text-slate-400">
           <Link to="/merchant/dashboard" className="hover:text-blue-400 transition-colors flex items-center gap-1">
@@ -25,8 +23,8 @@ export default function InvestorLayout() {
         </div>
       </div>
 
-      {/* Main Persistent Navbar */}
-      <Navbar activeRole="investor" brandTitle="CREDITFLOW" />
+      {/* Main Persistent Navbar with UMEED Branding */}
+      <Navbar activeRole="investor" brandTitle="UMEED" />
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -37,7 +35,7 @@ export default function InvestorLayout() {
       <footer className="border-t border-[#E2E8F0] bg-white py-6 mt-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[#64748B]">
           <div className="flex items-center gap-2">
-            <span className="font-extrabold text-[#0F172A] tracking-wider">CREDITFLOW</span>
+            <span className="font-extrabold text-[#0F172A] tracking-wider">UMEED</span>
             <span>• Decentralized Merchant Cash Advance Liquidity Engine</span>
           </div>
           <div className="flex items-center gap-4 font-mono text-[11px]">

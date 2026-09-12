@@ -8,6 +8,7 @@
  * - Investor Pool Repayment: 15%
  * - Protocol / Platform Fee: 1%
  */
+import api from './api.js';
 
 export const DEFAULT_SPLIT_RULES = {
   merchantPct: 0.84,
@@ -69,12 +70,13 @@ export function calculateSplit(grossAmount, sharePct = 0.15, platformFeePct = 0.
 }
 
 /**
- * Simulates backend POST /api/payments/create
+ * Executes or simulates POST /api/payments/create
  * 
  * @param {object} params
  * @param {string} params.contractId - e.g. "CON-001"
  * @param {number|string} params.amount - Gross transaction amount
- * @param {string} params.paymentMethod - e.g. "UPI" or "Card"
+ * @param {string} [params.method] - Payment method e.g. "UPI"
+ * @param {string} [params.paymentMethod] - Alternate key for payment method
  * @param {string} [params.customerName] - Optional customer name
  * @param {string} [params.merchantName] - Optional merchant name
  * @returns {Promise<object>} Structured transaction response
@@ -82,30 +84,59 @@ export function calculateSplit(grossAmount, sharePct = 0.15, platformFeePct = 0.
 export async function createPayment({
   contractId = 'CON-001',
   amount = 500,
-  paymentMethod = 'UPI Test Simulator',
+  method = 'UPI',
+  paymentMethod,
   customerName = 'Test Customer',
   merchantName = 'Sharma General Store'
 }) {
-  // Simulate network latency (500ms - 800ms)
-  await new Promise((resolve) => setTimeout(resolve, 650));
-
+  const activeMethod = paymentMethod || method || 'UPI';
   const gross = typeof amount === 'string' ? parseFloat(amount.replace(/[^0-9.-]+/g, '')) || 0 : Number(amount) || 0;
   const split = calculateSplit(gross);
+
+  try {
+    const res = await api.post('/payments/create', {
+      contractId,
+      amount: gross,
+      method: activeMethod,
+      customerName,
+      merchantName,
+      split
+    });
+    if (res.data?.transaction) {
+      saveTransaction(res.data.transaction);
+      return res.data.transaction;
+    }
+    if (res.data?.reference) {
+      saveTransaction(res.data);
+      return res.data;
+    }
+  } catch (err) {
+    console.warn('[paymentService] createPayment falling back to mock simulator:', err.message);
+  }
+
+  // Simulated fallback settlement execution
+  await new Promise((resolve) => setTimeout(resolve, 400));
   
-  // Synthetic reference: PAY- + random 6-digit number
   const randomRefDigits = Math.floor(100000 + Math.random() * 900000);
   const reference = `PAY-${randomRefDigits}`;
 
   const transaction = {
     success: true,
     reference,
+    id: `TXN-${randomRefDigits}`,
     contractId,
     merchantName,
     customerName,
     amount: split.gross,
-    paymentMethod,
+    grossSale: split.gross,
+    paymentMethod: activeMethod,
+    method: activeMethod,
+    merchantRate: 0.84,
+    investorRate: 0.15,
+    platformRate: 0.01,
     split,
     timestamp: new Date().toISOString(),
+    dateTime: 'Just now',
     formattedDate: new Intl.DateTimeFormat('en-IN', {
       day: 'numeric',
       month: 'short',
@@ -124,6 +155,20 @@ export async function createPayment({
 }
 
 /**
+ * Fetch transaction settlement ledger for a specific contract or LP pool
+ * GET /api/contracts/:contractId/transactions
+ */
+export async function fetchTransactions(contractId = 'CON-001') {
+  try {
+    const res = await api.get(`/contracts/${contractId}/transactions`);
+    return res.data?.transactions || res.data || getRecentPayments();
+  } catch (err) {
+    console.warn(`[paymentService] fetchTransactions(${contractId}) falling back to mock:`, err.message);
+    return getRecentPayments();
+  }
+}
+
+/**
  * Retrieve transaction details by reference
  * 
  * @param {string} reference 
@@ -132,10 +177,9 @@ export async function createPayment({
 export function getPaymentDetails(reference) {
   if (!reference) return null;
   const txs = getStoredTransactions();
-  const match = txs.find((tx) => tx.reference === reference);
+  const match = txs.find((tx) => tx.reference === reference || tx.id === reference);
   if (match) return match;
 
-  // Fallback synthetic if loaded directly via URL query params
   return null;
 }
 
@@ -146,40 +190,86 @@ export function getRecentPayments() {
   const txs = getStoredTransactions();
   if (txs.length > 0) return txs;
 
-  // Default seed transactions if empty
   const defaultSeeds = [
     {
-      reference: 'PAY-831920',
+      id: 'TXN-4920421',
+      reference: 'PAY-4920421',
       contractId: 'CON-001',
       merchantName: 'Sharma General Store',
-      amount: 500.00,
-      paymentMethod: 'UPI',
-      split: calculateSplit(500),
-      timestamp: new Date(Date.now() - 1000 * 60 * 12).toISOString(),
-      formattedDate: '12 Sep 2026, 10:48 AM',
-      status: 'SPLIT COMPLETED'
+      dateTime: 'Today, 02:40 PM',
+      rawDate: '2026-09-12T14:40:00',
+      grossSale: 500,
+      amount: 500,
+      merchantRate: 0.84,
+      investorRate: 0.15,
+      platformRate: 0.01,
+      status: 'SPLIT COMPLETED',
+      method: 'UPI QR (GPay)',
+      split: calculateSplit(500)
     },
     {
-      reference: 'PAY-712495',
+      id: 'TXN-4920419',
+      reference: 'PAY-4920419',
       contractId: 'CON-001',
       merchantName: 'Sharma General Store',
-      amount: 1200.00,
-      paymentMethod: 'UPI',
-      split: calculateSplit(1200),
-      timestamp: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
-      formattedDate: '12 Sep 2026, 10:15 AM',
-      status: 'SPLIT COMPLETED'
+      dateTime: 'Today, 01:15 PM',
+      rawDate: '2026-09-12T13:15:00',
+      grossSale: 1250,
+      amount: 1250,
+      merchantRate: 0.84,
+      investorRate: 0.15,
+      platformRate: 0.01,
+      status: 'SPLIT COMPLETED',
+      method: 'UPI QR (PhonePe)',
+      split: calculateSplit(1250)
     },
     {
-      reference: 'PAY-492104',
+      id: 'TXN-4920404',
+      reference: 'PAY-4920404',
       contractId: 'CON-001',
       merchantName: 'Sharma General Store',
-      amount: 250.00,
-      paymentMethod: 'UPI',
-      split: calculateSplit(250),
-      timestamp: new Date(Date.now() - 1000 * 60 * 110).toISOString(),
-      formattedDate: '12 Sep 2026, 09:10 AM',
-      status: 'SPLIT COMPLETED'
+      dateTime: 'Today, 11:30 AM',
+      rawDate: '2026-09-12T11:30:00',
+      grossSale: 350,
+      amount: 350,
+      merchantRate: 0.84,
+      investorRate: 0.15,
+      platformRate: 0.01,
+      status: 'Settled',
+      method: 'UPI QR (Paytm)',
+      split: calculateSplit(350)
+    },
+    {
+      id: 'TXN-4920388',
+      reference: 'PAY-4920388',
+      contractId: 'CON-001',
+      merchantName: 'Sharma General Store',
+      dateTime: 'Today, 10:05 AM',
+      rawDate: '2026-09-12T10:05:00',
+      grossSale: 2400,
+      amount: 2400,
+      merchantRate: 0.84,
+      investorRate: 0.15,
+      platformRate: 0.01,
+      status: 'SPLIT COMPLETED',
+      method: 'UPI QR (BHIM)',
+      split: calculateSplit(2400)
+    },
+    {
+      id: 'TXN-4920352',
+      reference: 'PAY-4920352',
+      contractId: 'CON-001',
+      merchantName: 'Sharma General Store',
+      dateTime: 'Yesterday, 08:50 PM',
+      rawDate: '2026-09-11T20:50:00',
+      grossSale: 850,
+      amount: 850,
+      merchantRate: 0.84,
+      investorRate: 0.15,
+      platformRate: 0.01,
+      status: 'Settled',
+      method: 'UPI QR (GPay)',
+      split: calculateSplit(850)
     }
   ];
 
@@ -190,6 +280,7 @@ export default {
   DEFAULT_SPLIT_RULES,
   calculateSplit,
   createPayment,
+  fetchTransactions,
   getPaymentDetails,
   getRecentPayments
 };

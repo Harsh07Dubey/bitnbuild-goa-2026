@@ -46,10 +46,12 @@ export default function App() {
         <Route path="/marketplace" element={<Navigate to="/playground" replace />} />
 
         {/* Merchant Routes */}
+        {/* Onboarding is publicly accessible post-OTP, before auth is fully set */}
+        <Route path="/merchant/onboarding" element={<MerchantOnboarding />} />
+
         <Route element={<ProtectedRoute />}>
           <Route path="/merchant" element={<MerchantLayout />}>
             <Route index element={<Navigate to="dashboard" replace />} />
-            <Route path="onboarding" element={<MerchantOnboarding />} />
             <Route path="dashboard" element={<MerchantDashboard />} />
             <Route path="contract/create" element={<CreateContract />} />
             <Route path="contract/:id" element={<ContractDetails />} />

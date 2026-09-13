@@ -10,9 +10,11 @@ import {
   Info,
   Globe,
   Store,
-  Wallet
+  Wallet,
+  ChevronRight
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import umeedLogo from '../assets/umeed-logo.png';
 
 // Phase stepper config
 const PHASES = [
@@ -30,23 +32,29 @@ function PhaseStepper({ currentPhase = 1 }) {
         return (
           <React.Fragment key={phase.id}>
             <div
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg whitespace-nowrap transition-colors ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl whitespace-nowrap transition-all ${
                 isActive
-                  ? 'bg-blue-600 text-white'
+                  ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-sm'
                   : isDone
-                  ? 'bg-emerald-100 text-emerald-700'
-                  : 'bg-slate-100 text-slate-400'
+                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                  : 'bg-slate-100 text-slate-400 border border-slate-200'
               }`}
             >
-              <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-black ${
-                isActive ? 'bg-white/20' : isDone ? 'bg-emerald-500/20' : 'bg-slate-200/60'
-              }`}>
+              <span
+                className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-black ${
+                  isActive ? 'bg-white/20' : isDone ? 'bg-emerald-500/20' : 'bg-slate-200/60'
+                }`}
+              >
                 {phase.id}
               </span>
               <span>PHASE {phase.id === 1 ? 'A' : phase.id === 2 ? 'B' : 'C'}: {phase.label}</span>
             </div>
             {idx < PHASES.length - 1 && (
-              <div className={`h-px w-3 sm:w-4 shrink-0 ${isDone || isActive ? 'bg-blue-300' : 'bg-slate-200'}`} />
+              <div
+                className={`h-px w-3 sm:w-4 shrink-0 ${
+                  isDone || isActive ? 'bg-emerald-400' : 'bg-slate-200'
+                }`}
+              />
             )}
           </React.Fragment>
         );
@@ -92,31 +100,53 @@ export default function Login() {
       return;
     }
     try {
-      await sendOtp(phone, selectedRole);
-      const redirectParam = searchParams.get('redirect');
-      const redirectQuery = redirectParam ? `&redirect=${encodeURIComponent(redirectParam)}` : '';
-      navigate(`/verify-otp?phone=${phone}&role=${selectedRole}${redirectQuery}`);
+      await sendOtp(phone);
+      navigate(`/verify-otp?phone=${phone}&role=${selectedRole}`);
     } catch (err) {
-      // error already set in context
+      // error set in context
     }
   };
 
   const errorMsg = localError || error;
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex flex-col items-center justify-center p-4 py-8 font-sans">
-      {/* Top Brand Bar */}
-      <div className="mb-6 text-center">
-        <Link to="/" className="inline-flex items-center gap-2.5 group">
-          <div className="w-10 h-10 rounded-xl bg-[#2563EB] flex items-center justify-center text-white font-black text-sm shadow-md shadow-blue-500/20 group-hover:bg-blue-700 transition-colors">
-            CF
+    <div className="min-h-screen bg-[#F1F5EE] text-slate-900 font-sans selection:bg-emerald-500 selection:text-white relative overflow-hidden flex flex-col items-center justify-center p-4 py-12">
+      {/* Paper Grain Overlay */}
+      <svg className="fixed inset-0 w-full h-full pointer-events-none -z-0 opacity-[0.05] mix-blend-multiply">
+        <filter id="umeed-grain">
+          <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" stitchTiles="stitch" />
+          <feColorMatrix type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.85 0" />
+        </filter>
+        <rect width="100%" height="100%" filter="url(#umeed-grain)" />
+      </svg>
+
+      {/* Background Split Linework */}
+      <svg
+        className="fixed top-0 left-0 w-full h-[960px] pointer-events-none -z-0 opacity-80"
+        viewBox="0 0 1440 960"
+        preserveAspectRatio="xMidYMin slice"
+        fill="none"
+      >
+        <path d="M -120 90 C 260 90, 480 300, 740 300" stroke="#0F766E" strokeOpacity="0.09" strokeWidth="1.5" />
+        <path d="M 740 300 C 900 300, 980 130, 1300 110 L 1560 100" stroke="#0F766E" strokeOpacity="0.09" strokeWidth="1.5" />
+        <path d="M 740 300 C 860 430, 900 600, 1120 700" stroke="#059669" strokeOpacity="0.12" strokeWidth="1.5" />
+        <path d="M 740 300 C 660 470, 590 610, 470 760" stroke="#B45309" strokeOpacity="0.10" strokeWidth="1.5" />
+        <circle cx="740" cy="300" r="3.5" fill="#0F766E" fillOpacity="0.3" />
+      </svg>
+
+      {/* Brand Logo Header */}
+      <div className="mb-6 text-center z-10">
+        <Link to="/" className="inline-flex items-center gap-3 group">
+          <div className="relative p-2 rounded-xl bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-600 border border-emerald-400/30 group-hover:scale-105 transition-transform shadow-md shadow-emerald-500/20">
+            <img src={umeedLogo} alt="Umeed Logo" className="h-8 w-auto object-contain brightness-200 contrast-200" />
           </div>
           <div className="flex flex-col text-left">
-            <span className="font-display font-extrabold text-lg text-slate-900 leading-none tracking-tight">
-              CREDIT<span className="text-[#2563EB]">FLOW</span>
+            <span className="font-black text-[24px] text-slate-900 tracking-tight flex items-center gap-2 leading-tight">
+              Umeed
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
             </span>
-            <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider">
-              FairFuture Protocol
+            <span className="text-[10px] font-mono tracking-widest bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent uppercase font-bold whitespace-nowrap">
+              Small Steps • Brighter Tomorrows
             </span>
           </div>
         </Link>
@@ -125,12 +155,12 @@ export default function Login() {
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-        className="w-full max-w-md"
+        transition={{ duration: 0.4 }}
+        className="w-full max-w-md relative z-10"
       >
         {/* Sandbox Callout Banner */}
-        <div className="mb-4 flex items-center gap-2 px-3 py-2 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-[11px] font-mono font-bold">
-          <Sparkles className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+        <div className="mb-4 flex items-center gap-2 px-3.5 py-2.5 rounded-2xl bg-gradient-to-r from-emerald-50 via-teal-50 to-cyan-50 border border-emerald-300 text-emerald-800 text-[11px] font-mono font-bold shadow-xs">
+          <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0 animate-spin" style={{ animationDuration: '5s' }} />
           <span>DEMO SANDBOX FLOW • HACKATHON DEMONSTRATION MODE</span>
         </div>
 
@@ -139,41 +169,37 @@ export default function Login() {
           <PhaseStepper currentPhase={1} />
         </div>
 
-        {/* Main Auth Card */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          {/* Card Top Accent */}
-          <div className={`h-1.5 bg-gradient-to-r ${
-            selectedRole === 'investor'
-              ? 'from-[#2563EB] via-indigo-500 to-emerald-400'
-              : 'from-[#059669] via-emerald-500 to-teal-400'
-          }`} />
+        {/* Main Card Wrapper */}
+        <div className="bg-white/95 backdrop-blur-2xl rounded-3xl border border-slate-200/90 shadow-xl overflow-hidden relative">
+          {/* Top Accent Bar */}
+          <div className="h-1.5 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500" />
 
-          <div className="p-5 sm:p-7">
-            {/* Persona Role Selection Tabs */}
+          <div className="p-6 sm:p-8">
+            {/* Account Persona Selector */}
             <div className="mb-6">
-              <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">
+              <label className="block text-[11px] font-mono font-extrabold text-slate-500 uppercase tracking-widest mb-2">
                 Select Account Type / Persona
               </label>
-              <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 rounded-xl border border-slate-200">
+              <div className="grid grid-cols-2 gap-2 p-1.5 bg-slate-100/80 rounded-2xl border border-slate-200">
                 <button
                   type="button"
                   onClick={() => setSelectedRole('merchant')}
-                  className={`py-2 px-3 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                  className={`py-2.5 px-3 rounded-xl text-xs font-bold font-mono flex items-center justify-center gap-2 transition-all cursor-pointer ${
                     selectedRole === 'merchant'
-                      ? 'bg-white text-[#0F172A] shadow-xs'
-                      : 'text-slate-500 hover:text-slate-800'
+                      ? 'bg-white text-slate-900 shadow-sm border border-slate-200'
+                      : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
-                  <Store className="w-3.5 h-3.5 text-[#059669]" />
+                  <Store className="w-3.5 h-3.5 text-emerald-600" />
                   <span>Merchant (POS)</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setSelectedRole('investor')}
-                  className={`py-2 px-3 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                  className={`py-2.5 px-3 rounded-xl text-xs font-bold font-mono flex items-center justify-center gap-2 transition-all cursor-pointer ${
                     selectedRole === 'investor'
-                      ? 'bg-[#2563EB] text-white shadow-xs'
-                      : 'text-slate-500 hover:text-slate-800'
+                      ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-sm'
+                      : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
                   <Wallet className="w-3.5 h-3.5" />
@@ -182,12 +208,12 @@ export default function Login() {
               </div>
             </div>
 
-            {/* Heading */}
+            {/* Heading Section */}
             <div className="mb-6">
-              <h1 className="text-xl sm:text-2xl font-extrabold font-display text-slate-900 tracking-tight">
+              <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
                 {selectedRole === 'investor' ? 'Investor Sign In & Onboarding' : 'Merchant Sign In & Onboarding'}
               </h1>
-              <p className="text-xs sm:text-sm text-slate-500 mt-1">
+              <p className="text-xs sm:text-sm text-slate-600 mt-1 font-medium leading-relaxed">
                 {selectedRole === 'investor'
                   ? 'Enter phone to access the LP investment marketplace and deploy capital.'
                   : 'Enter phone to register your shop and activate automatic split POS terminal.'}
@@ -197,15 +223,15 @@ export default function Login() {
             {/* Phone Form */}
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                <label className="block text-[11px] font-mono font-extrabold text-slate-700 uppercase tracking-widest mb-2">
                   Mobile Number
                 </label>
-                <div className="flex rounded-xl border-2 border-slate-200 focus-within:border-[#2563EB] focus-within:ring-4 focus-within:ring-blue-100 overflow-hidden transition-all bg-white">
-                  {/* Country Code Pill */}
-                  <div className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-3.5 py-3 bg-slate-50 border-r border-slate-200 text-sm font-semibold text-slate-700 shrink-0">
-                    <Globe className="w-4 h-4 text-slate-400" />
-                    <span className="font-mono">+91</span>
-                    <span className="text-[10px] text-slate-400 hidden sm:inline">(India)</span>
+                <div className="flex rounded-2xl border-2 border-slate-200 focus-within:border-emerald-500 focus-within:ring-4 focus-within:ring-emerald-100 overflow-hidden transition-all bg-white shadow-xs">
+                  {/* Country Code Badge */}
+                  <div className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-3 bg-slate-50 border-r border-slate-200 text-sm font-semibold text-slate-700 shrink-0">
+                    <Globe className="w-4 h-4 text-emerald-600" />
+                    <span className="font-mono font-bold">+91</span>
+                    <span className="text-[10px] font-mono text-slate-400 hidden sm:inline">(India)</span>
                   </div>
                   {/* Phone Input */}
                   <input
@@ -216,8 +242,8 @@ export default function Login() {
                     onChange={handlePhoneChange}
                     placeholder="98765 43210"
                     autoFocus
-                    maxLength={11} // 10 digits + 1 space
-                    className="flex-1 px-3 sm:px-4 py-3 text-sm sm:text-base font-mono font-semibold text-slate-900 bg-white focus:outline-none placeholder:text-slate-300 placeholder:font-normal min-w-0"
+                    maxLength={11}
+                    className="flex-1 px-3 sm:px-4 py-3 text-sm sm:text-base font-mono font-bold text-slate-900 bg-white focus:outline-none placeholder:text-slate-300 placeholder:font-normal min-w-0"
                   />
                 </div>
 
@@ -233,11 +259,11 @@ export default function Login() {
                 )}
               </div>
 
-              {/* Submit Button */}
+              {/* Action Button */}
               <button
                 type="submit"
                 disabled={isLoading || phone.length < 10}
-                className="w-full py-3.5 px-5 bg-[#2563EB] hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl text-sm font-bold shadow-md shadow-blue-500/20 transition-all flex items-center justify-center gap-2.5 active:scale-[0.99] cursor-pointer"
+                className="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white font-black text-xs tracking-wider uppercase shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2 group cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
               >
                 {isLoading ? (
                   <>
@@ -248,44 +274,46 @@ export default function Login() {
                   <>
                     <Phone className="w-4 h-4" />
                     <span>Send OTP Verification Code</span>
-                    <ArrowRight className="w-4 h-4" />
+                    <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                   </>
                 )}
               </button>
 
-              {/* Demo Hint */}
-              <div className="flex items-center gap-2 p-3 rounded-xl bg-blue-50 border border-blue-100 text-xs text-blue-700">
-                <Info className="w-3.5 h-3.5 text-blue-500 shrink-0" />
-                <span>
+              {/* Demo Info Box */}
+              <div className="flex items-center gap-2.5 p-3 rounded-2xl bg-emerald-50/80 border border-emerald-200 text-xs text-emerald-800">
+                <Info className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span className="font-medium">
                   <strong>Sandbox:</strong> Enter any 10-digit number. Demo OTP code will be shown on the next screen.
                 </span>
               </div>
             </form>
 
-            {/* Security Disclaimer */}
-            <div className="mt-5 flex items-center justify-center gap-1.5 text-[11px] text-slate-400">
-              <ShieldCheck className="w-3.5 h-3.5 text-[#059669]" />
+            {/* Escrow Notice */}
+            <div className="mt-6 flex items-center justify-center gap-1.5 text-[11px] font-mono text-slate-500 pt-4 border-t border-slate-100">
+              <ShieldCheck className="w-4 h-4 text-emerald-600" />
               <span>Instant security check powered by P2P escrow protocol.</span>
             </div>
           </div>
         </div>
 
-        <div className="mt-6 flex items-center justify-between text-xs text-slate-400 px-2">
+        {/* Footer Navigation Links */}
+        <div className="mt-6 flex items-center justify-between text-xs font-mono font-semibold text-slate-500 px-2">
           <Link
             to={`/register?role=${selectedRole}`}
-            className="hover:text-blue-600 transition-colors font-medium"
+            className="hover:text-emerald-600 transition-colors flex items-center gap-1"
           >
-            New here? Create Account →
+            <span>New here? Create Account</span>
+            <ArrowRight className="w-3.5 h-3.5" />
           </Link>
           <Link
             to={selectedRole === 'investor' ? '/investor/onboarding' : '/merchant/onboarding'}
-            className="hover:text-blue-600 transition-colors font-medium"
+            className="hover:text-emerald-600 transition-colors flex items-center gap-1"
           >
-            Direct Onboarding Setup →
+            <span>Direct Onboarding Setup</span>
+            <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
       </motion.div>
     </div>
   );
 }
-

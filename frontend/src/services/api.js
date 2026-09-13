@@ -48,9 +48,15 @@ api.interceptors.response.use(
   (error) => {
     const status = error.response?.status;
 
-    // Handle 401 Unauthorized: Expired/Invalid JWT
-    if (status === 401) {
-      console.warn('[API] 401 Unauthorized received. Clearing session.');
+    // Handle 401 Unauthorized: Expired/Invalid JWT on protected requests
+    const requestUrl = error.config?.url || '';
+    const isAuthEndpoint =
+      requestUrl.includes('/auth/login') ||
+      requestUrl.includes('/auth/verify-otp') ||
+      requestUrl.includes('/auth/register');
+
+    if (status === 401 && !isAuthEndpoint) {
+      console.warn('[API] 401 Unauthorized received on protected endpoint. Clearing session.');
       try {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
@@ -75,7 +81,7 @@ api.interceptors.response.use(
           currentPath === '/';
 
         if (!isPublicPage) {
-          window.location.href = '/login?session_expired=1';
+          window.location.href = `/login?session_expired=1&redirect=${encodeURIComponent(currentPath)}`;
         }
       }
     }

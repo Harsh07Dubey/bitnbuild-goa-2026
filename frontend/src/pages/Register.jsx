@@ -128,7 +128,7 @@ export default function Register() {
         email: email.trim() || undefined,
         role: selectedRole.toUpperCase(),
       });
-      navigate(`/verify-otp?phone=${phone}&role=${selectedRole}`);
+      navigate(`/verify-otp?phone=${phone}&role=${selectedRole}&onboarding=1`);
     } catch (err) {
       // error already set in context
     }

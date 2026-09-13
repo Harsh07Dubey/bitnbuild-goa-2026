@@ -92,8 +92,10 @@ export default function Login() {
       return;
     }
     try {
-      await sendOtp(phone);
-      navigate(`/verify-otp?phone=${phone}&role=${selectedRole}`);
+      await sendOtp(phone, selectedRole);
+      const redirectParam = searchParams.get('redirect');
+      const redirectQuery = redirectParam ? `&redirect=${encodeURIComponent(redirectParam)}` : '';
+      navigate(`/verify-otp?phone=${phone}&role=${selectedRole}${redirectQuery}`);
     } catch (err) {
       // error already set in context
     }

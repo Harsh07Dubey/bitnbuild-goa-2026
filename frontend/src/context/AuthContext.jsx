@@ -282,11 +282,11 @@ export function AuthProvider({ children }) {
    * Login with phone: initiates auth or sends OTP
    */
   const loginWithPhone = useCallback(
-    async (phone) => {
+    async (phone, targetRole) => {
       setLoading(true);
       setError(null);
       try {
-        const res = await apiSendOtp(phone);
+        const res = await apiSendOtp(phone, targetRole || role);
         return res;
       } catch (err) {
         setError(err.message);
@@ -295,7 +295,7 @@ export function AuthProvider({ children }) {
         setLoading(false);
       }
     },
-    []
+    [role]
   );
 
   /**

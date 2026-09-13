@@ -175,16 +175,29 @@ export default function OTPVerification() {
       await verifyOtp(phone, currentCode);
       setVerified(true);
       setTimeout(() => {
-        if (role === 'investor') {
-          navigate('/investor/onboarding');
+        const redirectParam = searchParams.get('redirect');
+        const isOnboarding = searchParams.get('onboarding') === '1';
+
+        if (redirectParam && !redirectParam.startsWith('/login') && !redirectParam.startsWith('/verify-otp')) {
+          navigate(redirectParam);
+        } else if (isOnboarding) {
+          if (role === 'investor') {
+            navigate('/investor/onboarding');
+          } else {
+            navigate('/merchant/onboarding');
+          }
         } else {
-          navigate('/merchant/onboarding');
+          if (role === 'investor') {
+            navigate('/investor/marketplace');
+          } else {
+            navigate('/merchant/dashboard');
+          }
         }
       }, 800);
     } catch (err) {
       setLocalError(err.message || 'Invalid OTP. Please try again.');
     }
-  }, [currentCode, phone, role, verifyOtp, navigate]);
+  }, [currentCode, phone, role, verifyOtp, navigate, searchParams]);
 
   // Auto-submit when all 6 digits filled
   useEffect(() => {

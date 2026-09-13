@@ -64,23 +64,31 @@ export async function verifyOtp({ phone, otp, user_id }) {
     throw new Error('Please enter the complete 6-digit OTP code.');
   }
 
-  const targetUserId =
-    user_id ||
-    localStorage.getItem('pending_user_id') ||
-    `usr_${(phone || 'demo').replace(/\D/g, '')}`;
+  const storedPhone = phone || localStorage.getItem('pending_phone') || '9876543210';
+  const cleanPhone = String(storedPhone).replace(/\D/g, '').slice(-10);
+  const targetUserId = user_id || localStorage.getItem('pending_user_id');
+
+  const payload = {
+    otp: String(otp).trim(),
+    phone: cleanPhone,
+  };
+  if (targetUserId) {
+    payload.user_id = targetUserId;
+  }
 
   try {
-    const res = await api.post('/auth/verify-otp', {
-      user_id: targetUserId,
-      otp,
-    });
-
+    const res = await api.post('/auth/verify-otp', payload);
     const data = res.data;
+
     if (data.token) {
       localStorage.setItem('token', data.token);
+      localStorage.setItem('fairfuture_token', data.token);
     }
     if (data.user) {
       localStorage.setItem('user', JSON.stringify(data.user));
+      if (data.user.role) {
+        localStorage.setItem('creditflow_role', data.user.role.toLowerCase());
+      }
     }
 
     return data;
@@ -89,10 +97,12 @@ export async function verifyOtp({ phone, otp, user_id }) {
 
     // Accept 6 digits in sandbox demonstration mode
     if (/^\d{6}$/.test(otp)) {
-      const mockToken = btoa(`fairfuture:${phone || 'demo'}:${Date.now()}`);
+      const mockToken = btoa(`fairfuture:${cleanPhone}:${Date.now()}`);
       const mockUser = {
-        user_id: targetUserId,
-        phone: phone || '9876543210',
+        user_id: targetUserId || `usr_${cleanPhone}`,
+        phone: cleanPhone,
+        role: localStorage.getItem('creditflow_role') || 'investor',
+        name: 'Demo User',
         verified_flag: true,
       };
 
@@ -169,21 +179,31 @@ export async function getCurrentUser() {
  * Send OTP to a phone number (convenience wrapper for AuthContext and Login pages)
  * @param {string} phone - 10 digit Indian mobile number
  */
-export async function sendOtp(phone) {
+export async function sendOtp(phone, role = 'investor') {
   if (!phone || phone.replace(/\D/g, '').length !== 10) {
     throw new Error('Please enter a valid 10-digit mobile number.');
   }
 
+  const cleanPhone = String(phone).replace(/\D/g, '').slice(-10);
+  localStorage.setItem('pending_phone', cleanPhone);
+
   // Attempt backend phone login or dispatch
   try {
-    const res = await api.post('/auth/login', { phone });
-    return res.data;
+    const res = await api.post('/auth/login', { phone: cleanPhone, role: (role || 'investor').toUpperCase() });
+    const data = res.data;
+    if (data?.user_id) {
+      localStorage.setItem('pending_user_id', data.user_id);
+    }
+    if (data?.role) {
+      localStorage.setItem('creditflow_role', data.role.toLowerCase());
+    }
+    return data;
   } catch (err) {
-    console.info(`[authService] OTP dispatch fallback for +91${phone}. Demo code: ${DEMO_OTP_CODE}`);
+    console.info(`[authService] OTP dispatch fallback for +91${cleanPhone}. Demo code: ${DEMO_OTP_CODE}`);
     return {
       success: true,
-      phone,
-      message: `OTP sent to +91 ${phone}`,
+      phone: cleanPhone,
+      message: `OTP sent to +91 ${cleanPhone}`,
       demoOtp: DEMO_OTP_CODE,
     };
   }

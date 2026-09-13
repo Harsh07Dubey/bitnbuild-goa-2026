@@ -10,7 +10,7 @@ import { useAuth } from '../context/AuthContext';
  * @param {React.ReactNode} [props.children] — optional children; falls back to <Outlet />
  */
 export default function ProtectedRoute({ allowedRoles, children }) {
-  const { isAuthenticated, isLoading, role } = useAuth();
+  const { isAuthenticated, isLoading, role, user } = useAuth();
   const location = useLocation();
 
   // ── 1. Hydration in progress: show branded spinner ───────────────────────
@@ -48,10 +48,13 @@ export default function ProtectedRoute({ allowedRoles, children }) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // ── 3. Role-based access control ─────────────────────────────────────────
-  if (allowedRoles && allowedRoles.length > 0 && !allowedRoles.includes(role)) {
+  // ── 3. Role-based access control (case-insensitive) ─────────────────────
+  const currentRole = (role || user?.role || '').toLowerCase();
+  const normalizedAllowedRoles = (allowedRoles || []).map((r) => r.toLowerCase());
+
+  if (normalizedAllowedRoles.length > 0 && !normalizedAllowedRoles.includes(currentRole)) {
     // Redirect to the user's own home route
-    const homeRoute = role === 'merchant' ? '/merchant/dashboard' : '/investor/marketplace';
+    const homeRoute = currentRole === 'merchant' ? '/merchant/dashboard' : '/investor/marketplace';
     return <Navigate to={homeRoute} replace />;
   }
 

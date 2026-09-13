@@ -19,7 +19,7 @@ import {
 import TrustScoreCard from '../../components/TrustScoreCard';
 import { formatCurrency } from '../../utils/formatCurrency';
 import { getTrustScore } from '../../services/aiService';
-import { createContract } from '../../services/contractService';
+import { createContract, listContract } from '../../services/contractService';
 
 export default function CreateContract() {
   const navigate = useNavigate();

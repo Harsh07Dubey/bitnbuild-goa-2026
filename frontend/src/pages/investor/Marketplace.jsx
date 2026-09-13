@@ -42,6 +42,7 @@ export default function Marketplace() {
   const [selectedContract, setSelectedContract] = useState(null);
   const [investAmount, setInvestAmount] = useState(25000);
   const [toastMessage, setToastMessage] = useState(null);
+  const [advancedViewsActive, setAdvancedViewsActive] = useState(false);
 
   // Fetch contracts on initial mount
   useEffect(() => {
@@ -125,28 +126,34 @@ export default function Marketplace() {
 
   // Filtered & Sorted Contracts
   const filteredContracts = useMemo(() => {
-    return contracts
+    return (contracts || [])
       .filter((c) => {
+        if (!c) return false;
         if (categoryFilter !== 'ALL' && c.category !== categoryFilter) return false;
-        if (durationFilter === '60' && c.durationDays > 60) return false;
-        if (durationFilter === '90' && (c.durationDays <= 60 || c.durationDays > 90)) return false;
-        if (durationFilter === '180' && c.durationDays <= 90) return false;
+        const dur = Number(c.durationDays ?? c.duration_days ?? 0);
+        if (durationFilter === '60' && dur > 60) return false;
+        if (durationFilter === '90' && (dur <= 60 || dur > 90)) return false;
+        if (durationFilter === '180' && dur <= 90) return false;
         if (searchQuery.trim()) {
           const q = searchQuery.toLowerCase();
-          const matchName = c.merchantName.toLowerCase().includes(q);
-          const matchCat = c.category.toLowerCase().includes(q);
-          const matchLoc = c.location.toLowerCase().includes(q);
+          const matchName = (c.merchantName || '').toLowerCase().includes(q);
+          const matchCat = (c.category || '').toLowerCase().includes(q);
+          const matchLoc = (c.location || '').toLowerCase().includes(q);
           if (!matchName && !matchCat && !matchLoc) return false;
         }
         return true;
       })
       .sort((a, b) => {
-        if (sortFilter === 'trust-desc') return b.trustScore - a.trustScore;
+        const scoreA = Number(a.trustScore ?? a.trust_score ?? 0);
+        const scoreB = Number(b.trustScore ?? b.trust_score ?? 0);
+        if (sortFilter === 'trust-desc') return scoreB - scoreA;
         if (sortFilter === 'progress-desc') {
-          return b.fundedAmount / b.targetPrincipal - a.fundedAmount / a.targetPrincipal;
+          const progA = a.targetPrincipal ? (a.fundedAmount || 0) / a.targetPrincipal : 0;
+          const progB = b.targetPrincipal ? (b.fundedAmount || 0) / b.targetPrincipal : 0;
+          return progB - progA;
         }
-        if (sortFilter === 'rate-desc') return b.revenueSharePercent - a.revenueSharePercent;
-        if (sortFilter === 'principal-asc') return a.targetPrincipal - b.targetPrincipal;
+        if (sortFilter === 'rate-desc') return (b.revenueSharePercent || 0) - (a.revenueSharePercent || 0);
+        if (sortFilter === 'principal-asc') return (a.targetPrincipal || 0) - (b.targetPrincipal || 0);
         return 0;
       });
   }, [contracts, categoryFilter, durationFilter, sortFilter, searchQuery]);

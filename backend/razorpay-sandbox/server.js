@@ -19,7 +19,25 @@ const PORT = process.env.PORT || 5001;
 const KEY_ID = process.env.RAZORPAY_KEY_ID || 'rzp_test_TapGP2kHFhqm7a';
 const KEY_SECRET = process.env.RAZORPAY_KEY_SECRET || '9E0GsKSpi96UCDAnWH5UUSj1';
 
-app.use(cors());
+const allowedOrigins = [
+  'https://bitnbuild-goa-2026.vercel.app',
+  process.env.FRONTEND_URL,
+  'http://localhost:5173',
+  'http://localhost:3000'
+].filter(Boolean);
+
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin) || /^https:\/\/bitnbuild-goa-2026.*\.vercel\.app$/.test(origin)) {
+      return callback(null, true);
+    }
+    return callback(null, true);
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin']
+}));
 app.use(express.json());
 
 let razorpayInstance = null;

@@ -4,6 +4,7 @@ import { Routes, Route, Navigate, useParams, useSearchParams } from 'react-route
 // Public & Auth Pages
 import Landing from './pages/Landing';
 import Login from './pages/Login';
+import Register from './pages/Register';
 import OTPVerification from './pages/OTPVerification';
 import CreditFlowFAQ from './pages/CreditFlowFAQ';
 import TermsPage from './pages/TermsPage';
@@ -57,9 +58,10 @@ export default function App() {
   return (
     <>
       <Routes>
-        {/* Public Routes */}
+        {/* ── Public Routes ─────────────────────────────────────────────── */}
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
         <Route path="/verify-otp" element={<OTPVerification />} />
         <Route path="/faq" element={<CreditFlowFAQ />} />
         <Route path="/terms" element={<TermsPage />} />
@@ -68,11 +70,9 @@ export default function App() {
         <Route path="/playground" element={<PlaygroundPassThrough />} />
         <Route path="/marketplace" element={<Navigate to="/investor/marketplace" replace />} />
 
-        {/* Onboarding Routes */}
-        <Route path="/merchant/onboarding" element={<MerchantOnboarding />} />
-        <Route path="/investor/onboarding" element={<InvestorOnboarding />} />
-
-        <Route element={<ProtectedRoute />}>
+        {/* ── Merchant Gated Routes (role: merchant) ───────────────────── */}
+        <Route element={<ProtectedRoute allowedRoles={['merchant']} />}>
+          <Route path="/merchant/onboarding" element={<MerchantOnboarding />} />
           <Route path="/merchant" element={<MerchantLayout />}>
             <Route index element={<Navigate to="dashboard" replace />} />
             <Route path="dashboard" element={<MerchantDashboard />} />
@@ -83,25 +83,25 @@ export default function App() {
           </Route>
         </Route>
 
-        {/* Semantic Investor Routes */}
-        <Route element={<ProtectedRoute />}>
+        {/* ── Investor Gated Routes (role: investor) ───────────────────── */}
+        <Route element={<ProtectedRoute allowedRoles={['investor']} />}>
+          <Route path="/investor/onboarding" element={<InvestorOnboarding />} />
           <Route path="/investor" element={<InvestorLayout />}>
             <Route index element={<Navigate to="marketplace" replace />} />
             <Route path="marketplace" element={<Marketplace />} />
             <Route path="dashboard" element={<InvestorDashboard />} />
-            <Route path="onboarding" element={<InvestorOnboarding />} />
             <Route path="contract/:id" element={<InvestorContractRedirect />} />
             <Route path="fund/:id" element={<InvestorContractRedirect />} />
           </Route>
         </Route>
 
-        {/* Customer Checkout / Payment Terminal States */}
+        {/* ── Customer Checkout / Payment Terminal States (Public) ──────── */}
         <Route path="/pay" element={<PaymentCard isStandalone={true} />} />
         <Route path="/pay/:contractId" element={<PaymentCard isStandalone={true} />} />
         <Route path="/payment/success" element={<PaymentSuccess />} />
         <Route path="/payment/failed" element={<PaymentFailed />} />
 
-        {/* Catch-all fallback */}
+        {/* ── Catch-all fallback ────────────────────────────────────────── */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
 

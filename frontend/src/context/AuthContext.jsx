@@ -4,6 +4,7 @@ import {
   sendOtp as apiSendOtp,
   verifyOtp as apiVerifyOtp,
   login as apiLogin,
+  register as apiRegister,
   registerMerchant,
   registerInvestor,
   getCurrentUser,
@@ -82,25 +83,24 @@ export function AuthProvider({ children }) {
         localStorage.getItem(STORAGE_KEYS.USER) ||
         localStorage.getItem(STORAGE_KEYS.LEGACY_USER);
       if (savedUser) return JSON.parse(savedUser);
-      const initialRole = localStorage.getItem(STORAGE_KEYS.ROLE) || 'investor';
-      return initialRole === 'merchant' ? DEFAULT_MERCHANT_USER : DEFAULT_INVESTOR_USER;
+      return null;
     } catch {
-      return DEFAULT_INVESTOR_USER;
+      return null;
     }
   });
 
-  // 4. Authentication Status
+  // 4. Authentication Status — real enforcement, no more || true fallback
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     try {
       const savedToken = localStorage.getItem(STORAGE_KEYS.TOKEN);
-      return Boolean(savedToken) || true; // Default true for frictionless hackathon demonstration
+      return Boolean(savedToken);
     } catch {
-      return true;
+      return false;
     }
   });
 
-  // 5. Loading & Error States
-  const [loading, setLoading] = useState(false);
+  // 5. Loading & Error States — starts true so ProtectedRoute shows spinner during hydration
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   // 6. Persistent Liquid Balance for simulated LP capital
@@ -140,6 +140,18 @@ export function AuthProvider({ children }) {
     }
   }, [role, liquidBalance, activeContractId, user, token]);
 
+  // ─── LISTEN FOR 401 SESSION EXPIRED EVENT FROM AXIOS INTERCEPTOR ───────────
+  useEffect(() => {
+    const handleSessionExpired = () => {
+      console.warn('[AuthContext] Session expired event received. Clearing state.');
+      setIsAuthenticated(false);
+      setToken(null);
+      setUser(null);
+    };
+    window.addEventListener('auth:session-expired', handleSessionExpired);
+    return () => window.removeEventListener('auth:session-expired', handleSessionExpired);
+  }, []);
+
   // ─── INITIALIZATION ON MOUNT ───────────────────────────────────────────────
   const initializeAuth = useCallback(async () => {
     // 1. Trigger non-blocking backend wakeup ping for Render free-tier
@@ -147,21 +159,41 @@ export function AuthProvider({ children }) {
 
     // 2. If token exists, verify via GET /api/users/me
     const storedToken = localStorage.getItem(STORAGE_KEYS.TOKEN);
-    if (!storedToken) return;
+    if (!storedToken) {
+      setLoading(false);
+      return;
+    }
 
     try {
       const remoteUser = await getCurrentUser();
       if (remoteUser) {
+        const resolvedRole = (remoteUser.role || role).toLowerCase();
         setUser((prev) => ({
-          ...prev,
+          ...(prev || {}),
           ...remoteUser,
-          role: (remoteUser.role || role).toLowerCase(),
+          role: resolvedRole,
         }));
+        setRole(resolvedRole);
         setIsAuthenticated(true);
       }
     } catch (err) {
-      // If verification fails (e.g. 401 or offline), fallback gracefully to local session
-      console.info('[AuthContext] Stored session preserved in offline/demo mode.');
+      // If verification fails with 401 → token is invalid/expired, wipe session
+      if (err?.response?.status === 401) {
+        console.warn('[AuthContext] Stored token expired. Wiping session.');
+        setIsAuthenticated(false);
+        setToken(null);
+        setUser(null);
+        try {
+          localStorage.removeItem(STORAGE_KEYS.TOKEN);
+          localStorage.removeItem(STORAGE_KEYS.USER);
+          localStorage.removeItem(STORAGE_KEYS.SESSION);
+        } catch {}
+      } else {
+        // Network error / backend cold start — preserve local session gracefully
+        console.info('[AuthContext] Stored session preserved in offline/demo mode.');
+      }
+    } finally {
+      setLoading(false);
     }
   }, [role]);
 
@@ -213,6 +245,40 @@ export function AuthProvider({ children }) {
   const switchRole = switchRoleDemo;
 
   /**
+   * Register a new user account
+   * POST /api/auth/register
+   */
+  const register = useCallback(
+    async ({ name, phone, email, role: userRole }) => {
+      setLoading(true);
+      setError(null);
+      try {
+        const result = await apiRegister({
+          name,
+          phone,
+          email,
+          role: userRole,
+        });
+
+        // Store pending user ID for OTP verification
+        if (result?.user_id) {
+          try {
+            localStorage.setItem('pending_user_id', result.user_id);
+          } catch {}
+        }
+
+        return result;
+      } catch (err) {
+        setError(err.message);
+        throw err;
+      } finally {
+        setLoading(false);
+      }
+    },
+    []
+  );
+
+  /**
    * Login with phone: initiates auth or sends OTP
    */
   const loginWithPhone = useCallback(
@@ -252,11 +318,14 @@ export function AuthProvider({ children }) {
           name: role === 'merchant' ? 'Ramesh Sharma' : 'Ananya Mehta',
         };
 
+        const resolvedRole = (activeUser.role || role).toLowerCase();
         setUser(activeUser);
+        setRole(resolvedRole);
 
         try {
           localStorage.setItem(STORAGE_KEYS.TOKEN, receivedToken);
           localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(activeUser));
+          localStorage.setItem(STORAGE_KEYS.ROLE, resolvedRole);
         } catch {}
 
         return result;
@@ -411,6 +480,7 @@ export function AuthProvider({ children }) {
     isLoading: loading, // alias
 
     // Standard prompt methods
+    register,
     loginWithPhone,
     confirmOtp,
     logout,

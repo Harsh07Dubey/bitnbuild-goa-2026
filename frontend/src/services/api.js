@@ -60,16 +60,22 @@ api.interceptors.response.use(
         console.warn('[API] Failed to clear localStorage on 401:', err);
       }
 
+      // Notify AuthContext synchronously before hard redirect
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('auth:session-expired'));
+      }
+
       // Avoid infinite redirects if already on public/auth routes
       if (typeof window !== 'undefined') {
         const currentPath = window.location.pathname;
-        const isAuthPage =
+        const isPublicPage =
           currentPath === '/login' ||
+          currentPath === '/register' ||
           currentPath === '/verify-otp' ||
           currentPath === '/';
 
-        if (!isAuthPage) {
-          window.location.href = '/login?expired=true';
+        if (!isPublicPage) {
+          window.location.href = '/login?session_expired=1';
         }
       }
     }

@@ -25,6 +25,7 @@ import QRCodeCard from '../../components/QRCodeCard';
 import PaymentCard from '../../components/PaymentCard';
 import { formatCurrency } from '../../utils/formatCurrency';
 import { getRecentPayments, fetchTransactions } from '../../services/paymentService';
+import { useAuth } from '../../context/AuthContext';
 
 export default function MerchantQR() {
   const [isSimulatorOpen, setIsSimulatorOpen] = useState(false);
@@ -32,9 +33,10 @@ export default function MerchantQR() {
   const [transactions, setTransactions] = useState([]);
   const [paymentNotice, setPaymentNotice] = useState(null);
 
-  const merchantName = 'Sharma General Store';
-  const contractId = 'CON-001';
-  const payUrl = 'https://fairfuture.app/pay/CON-001';
+  const { activeContractId, user } = useAuth();
+  const merchantName = user?.stallName || 'Sharma General Store';
+  const contractId = activeContractId || 'CON-001';
+  const payUrl = `${window.location.origin}/pay/${contractId}`;
 
   // Load recent transactions from backend API with fallback
   useEffect(() => {

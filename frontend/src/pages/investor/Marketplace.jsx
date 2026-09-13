@@ -28,7 +28,6 @@ export default function Marketplace() {
   const [durationFilter, setDurationFilter] = useState('ALL');
   const [sortFilter, setSortFilter] = useState('trust-desc');
   const [searchQuery, setSearchQuery] = useState('');
-  const [advancedViewsActive, setAdvancedViewsActive] = useState(false);
 
   // Dropdown open states
   const [isCatOpen, setIsCatOpen] = useState(false);
@@ -67,19 +66,19 @@ export default function Marketplace() {
   }, []);
 
   // Auto-open modal when deep-linked with ?fund= or ?contract=
+  const fundParam = searchParams.get('fund') || searchParams.get('contract');
   useEffect(() => {
-    const targetId = searchParams.get('fund') || searchParams.get('contract');
-    if (targetId && contracts.length > 0) {
+    if (fundParam && contracts.length > 0) {
       const match = contracts.find(
         (c) =>
-          c.id.toLowerCase() === targetId.toLowerCase() ||
-          c.id.replace(/^cf-/, '') === targetId.replace(/^cf-/, '')
+          c.id.toLowerCase() === fundParam.toLowerCase() ||
+          c.id.replace(/^cf-/, '') === fundParam.replace(/^cf-/, '')
       );
       if (match) {
         setSelectedContract(match);
       }
     }
-  }, [searchParams, contracts]);
+  }, [fundParam, contracts]);
 
   const triggerToast = (msg) => {
     setToastMessage(msg);

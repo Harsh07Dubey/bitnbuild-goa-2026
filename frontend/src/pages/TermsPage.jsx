@@ -8,8 +8,7 @@ import {
   ArrowLeft,
   Store,
   Wallet,
-  Sparkles,
-  RotateCcw
+  Sparkles
 } from 'lucide-react';
 import TermsAgreementGate from '../components/TermsAgreementGate';
 
@@ -24,7 +23,6 @@ export default function TermsPage() {
 
   const [selectedType, setSelectedType] = useState(initialType);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [acceptedState, setAcceptedState] = useState(null);
 
   // Sync state if URL search query changes
   useEffect(() => {
@@ -34,7 +32,7 @@ export default function TermsPage() {
   // Destination route after accepting terms
   const targetNextPage =
     searchParams.get('redirect') ||
-    (selectedType === 'Investor Disclosure' ? '/playground' : '/merchant/contract/create');
+    (selectedType === 'Investor Disclosure' ? '/investor/marketplace' : '/merchant/onboarding');
 
   const handleAcceptTerms = () => {
     setIsSubmitting(true);
@@ -89,7 +87,6 @@ export default function TermsPage() {
               <button
                 onClick={() => {
                   setSelectedType('Merchant Agreement');
-                  setAcceptedState(null);
                 }}
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                   selectedType === 'Merchant Agreement'
@@ -104,7 +101,6 @@ export default function TermsPage() {
               <button
                 onClick={() => {
                   setSelectedType('Investor Disclosure');
-                  setAcceptedState(null);
                 }}
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                   selectedType === 'Investor Disclosure'

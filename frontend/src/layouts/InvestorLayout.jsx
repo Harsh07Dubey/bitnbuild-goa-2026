@@ -18,10 +18,13 @@ export default function InvestorLayout() {
           <span className="text-slate-200 font-bold tracking-wider">UMEED</span>
         </div>
         <div className="flex items-center gap-4 text-slate-400">
-          <Link to="/merchant/dashboard" className="hover:text-blue-400 transition-colors flex items-center gap-1">
+          <button
+            onClick={() => switchRole('merchant')}
+            className="hover:text-blue-400 transition-colors flex items-center gap-1 cursor-pointer bg-transparent border-none p-0"
+          >
             <span>Switch to Merchant Terminal</span>
             <ArrowUpRight className="w-3 h-3" />
-          </Link>
+          </button>
           <span>•</span>
           <Link to="/" className="hover:text-white transition-colors">
             Landing Page

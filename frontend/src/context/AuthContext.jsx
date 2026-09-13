@@ -51,12 +51,7 @@ const DEFAULT_LIQUID_BALANCE = 355000;
 const DEFAULT_CONTRACT_ID = 'CON-001';
 
 export function AuthProvider({ children }) {
-  let navigate = null;
-  try {
-    navigate = useNavigate();
-  } catch {
-    // Router context not mounted yet
-  }
+  const navigate = useNavigate();
 
   // 1. Persistent Token State
   const [token, setToken] = useState(() => {
@@ -210,12 +205,7 @@ export function AuthProvider({ children }) {
       }
 
       const targetPath = targetRole === 'merchant' ? '/merchant/dashboard' : '/investor/marketplace';
-
-      if (navigate) {
-        navigate(targetPath);
-      } else if (typeof window !== 'undefined') {
-        window.location.href = targetPath;
-      }
+      navigate(targetPath);
     },
     [activeContractId, navigate]
   );
@@ -298,11 +288,7 @@ export function AuthProvider({ children }) {
         localStorage.removeItem('pending_user_id');
       } catch {}
       setLoading(false);
-      if (navigate) {
-        navigate('/login');
-      } else if (typeof window !== 'undefined') {
-        window.location.href = '/login';
-      }
+      navigate('/login');
     }
   }, [navigate]);
 
